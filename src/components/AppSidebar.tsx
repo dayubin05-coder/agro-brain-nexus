@@ -110,8 +110,20 @@ export default function AppSidebar() {
         })}
       </nav>
 
-      {/* Collapse toggle */}
-      <div className="p-2 border-t border-sidebar-border">
+      {/* Collapse toggle and Logout */}
+      <div className="p-2 border-t border-sidebar-border flex flex-col gap-2">
+        <button
+          onClick={async () => {
+            await supabase.auth.signOut();
+            navigate("/login");
+          }}
+          className="w-full flex items-center justify-center py-2 rounded-lg text-sidebar-foreground/50 hover:text-red-500 hover:bg-sidebar-accent/50 transition-colors group"
+          title="Sair"
+        >
+          <LogOut className="w-4 h-4" />
+          {!collapsed && <span className="ml-3 text-sm">Sair</span>}
+        </button>
+
         <button
           onClick={() => setCollapsed(!collapsed)}
           className="w-full flex items-center justify-center py-2 rounded-lg text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors"
