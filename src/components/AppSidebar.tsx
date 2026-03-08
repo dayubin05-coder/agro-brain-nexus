@@ -17,7 +17,10 @@ import {
   ChevronLeft,
   ChevronRight,
   Leaf,
+  LogOut,
 } from "lucide-react";
+
+import { supabase } from "@/integrations/supabase/client";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
