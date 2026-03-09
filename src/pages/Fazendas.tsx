@@ -16,6 +16,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import heroFarm from "@/assets/hero-farm.jpg";
+import { FarmMap } from "@/components/FarmMap";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Fazendas() {
   const { toast } = useToast();
