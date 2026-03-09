@@ -62,7 +62,7 @@ export default function AppSidebar() {
               className="overflow-hidden whitespace-nowrap"
             >
               <span className="font-display text-lg font-bold text-sidebar-foreground">
-                AgroOS
+                AgroTech
               </span>
               <span className="block text-xs text-sidebar-foreground/50 -mt-1">
                 Use Sistemas
