@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import MetricCard from "@/components/MetricCard";
 import AlertCard from "@/components/AlertCard";
+import WeatherWidget from "@/components/WeatherWidget";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, PieChart, Pie, Cell,
@@ -141,6 +142,25 @@ export default function Dashboard() {
       return data;
     },
   });
+
+  // Fetch fazendas for weather (get first farm with coordinates)
+  const { data: fazendasData } = useQuery({
+    queryKey: ["dashboard-fazendas"],
+    enabled: !!userData,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("fazendas")
+        .select("id, nome, latitude, longitude")
+        .eq("user_id", userData?.id!)
+        .not("latitude", "is", null)
+        .not("longitude", "is", null)
+        .limit(3);
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const primaryFarm = fazendasData?.[0];
 
   // Calculate KPIs
   const totalAreaPlantada = plantiosData?.reduce((acc, p) => acc + Number(p.area_plantada), 0) || 0;
@@ -361,7 +381,25 @@ export default function Dashboard() {
             </motion.div>
           </div>
 
-          {/* Costs + Alerts */}
+          {/* Weather Widget */}
+          {primaryFarm && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.32 }}
+              className="bg-card rounded-xl p-5 shadow-card border border-border"
+            >
+              <h3 className="font-display font-semibold text-foreground mb-4 flex items-center gap-2">
+                <CloudSun className="w-5 h-5 text-primary" /> Clima — {primaryFarm.nome}
+              </h3>
+              <WeatherWidget
+                latitude={primaryFarm.latitude!}
+                longitude={primaryFarm.longitude!}
+                farmName={primaryFarm.nome}
+              />
+            </motion.div>
+          )}
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Cost chart / Recent transactions */}
             <motion.div
