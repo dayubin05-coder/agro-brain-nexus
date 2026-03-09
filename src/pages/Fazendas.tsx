@@ -259,8 +259,13 @@ export default function Fazendas() {
                 </div>
               </motion.div>
             )
-          })}
-        </div>
+              })}
+            </div>
+          </TabsContent>
+          <TabsContent value="mapa" className="mt-0">
+            <FarmMap fazendas={fazendas} />
+          </TabsContent>
+        </Tabs>
       )}
     </div>
   );
