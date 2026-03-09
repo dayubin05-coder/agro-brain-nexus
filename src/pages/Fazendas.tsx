@@ -40,7 +40,12 @@ export default function Fazendas() {
         .from("fazendas")
         .select(`
           *,
-          talhoes (count)
+          talhoes (
+            id,
+            nome,
+            area,
+            coordenadas
+          )
         `)
         .eq('user_id', userData.user.id)
         .order('created_at', { ascending: false });
