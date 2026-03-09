@@ -1,36 +1,30 @@
-import { motion } from "framer-motion";
 import { useState } from "react";
+import { motion } from "framer-motion";
 import {
   Sprout, Calendar, TrendingUp, Wheat, Plus, ChevronRight,
-  Droplets, Sun, Thermometer, Leaf,
+  Leaf, Loader2
 } from "lucide-react";
 import MetricCard from "@/components/MetricCard";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line,
 } from "recharts";
-
-const safras = [
-  {
-    id: 1, cultura: "Soja", variedade: "TMG 2381", talhao: "Talhão 1", area: "320 ha",
-    dataPlantio: "15/10/2025", prevColheita: "20/02/2026", status: "Crescimento", progresso: 72,
-    densidade: "14 sem/m", fertilizacao: "MAP 300kg/ha", defensivos: "2 aplicações",
-  },
-  {
-    id: 2, cultura: "Milho Safrinha", variedade: "DKB 390", talhao: "Talhão 5", area: "180 ha",
-    dataPlantio: "25/02/2026", prevColheita: "15/07/2026", status: "Plantio", progresso: 15,
-    densidade: "3.5 sem/m", fertilizacao: "NPK 400kg/ha", defensivos: "0 aplicações",
-  },
-  {
-    id: 3, cultura: "Algodão", variedade: "FM 985 GLTP", talhao: "Talhão 8", area: "250 ha",
-    dataPlantio: "10/12/2025", prevColheita: "15/06/2026", status: "Floração", progresso: 55,
-    densidade: "9 sem/m", fertilizacao: "KCl 200kg/ha", defensivos: "4 aplicações",
-  },
-  {
-    id: 4, cultura: "Café", variedade: "Catuaí Vermelho", talhao: "Talhão 12", area: "80 ha",
-    dataPlantio: "Perene", prevColheita: "Mai-Jul/2026", status: "Frutificação", progresso: 60,
-    densidade: "4.000 pl/ha", fertilizacao: "Foliar + solo", defensivos: "3 aplicações",
-  },
-];
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 const produtividadeData = [
   { safra: "20/21", soja: 58, milho: 95, algodao: 280 },
@@ -53,92 +47,375 @@ const crescimentoData = [
 ];
 
 const statusColor: Record<string, string> = {
-  "Plantio": "bg-info/10 text-info",
-  "Crescimento": "bg-success/10 text-success",
-  "Floração": "bg-warning/10 text-warning",
-  "Frutificação": "bg-secondary/10 text-secondary",
-  "Colheita": "bg-primary/10 text-primary",
+  "plantio": "bg-info/10 text-info",
+  "crescimento": "bg-success/10 text-success",
+  "floracao": "bg-warning/10 text-warning",
+  "frutificacao": "bg-secondary/10 text-secondary",
+  "colheita": "bg-primary/10 text-primary",
 };
 
 export default function Plantio() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [newPlantio, setNewPlantio] = useState({
+    cultura_id: "",
+    talhao_id: "",
+    area_plantada: "",
+    data_plantio: "",
+    previsao_colheita: "",
+    variedade: "",
+    densidade_plantio: "",
+    fertilizacao: "",
+  });
+
+  const { data: userData } = useQuery({
+    queryKey: ["user"],
+    queryFn: async () => {
+      const { data } = await supabase.auth.getUser();
+      return data.user;
+    },
+  });
+
+  const { data: culturas } = useQuery({
+    queryKey: ["culturas"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("culturas").select("*").order("nome");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: talhoes } = useQuery({
+    queryKey: ["talhoes-disponiveis"],
+    enabled: !!userData,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("talhoes")
+        .select(`
+          id,
+          nome,
+          area,
+          fazendas (
+            nome,
+            user_id
+          )
+        `)
+        .eq("fazendas.user_id", userData?.id);
+      
+      if (error) throw error;
+      // Filter out talhoes where fazendas is null (in case of RLS or inner join issues)
+      return data.filter(t => t.fazendas !== null);
+    },
+  });
+
+  const { data: plantios, isLoading } = useQuery({
+    queryKey: ["plantios"],
+    enabled: !!userData,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("plantios")
+        .select(`
+          *,
+          culturas (nome),
+          talhoes!inner (
+            nome,
+            fazendas!inner (user_id)
+          )
+        `)
+        .eq("talhoes.fazendas.user_id", userData?.id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const addPlantioMutation = useMutation({
+    mutationFn: async (plantioData: typeof newPlantio) => {
+      const { data, error } = await supabase.from("plantios").insert([
+        {
+          cultura_id: plantioData.cultura_id,
+          talhao_id: plantioData.talhao_id,
+          area_plantada: Number(plantioData.area_plantada),
+          data_plantio: plantioData.data_plantio,
+          previsao_colheita: plantioData.previsao_colheita || null,
+          variedade: plantioData.variedade || null,
+          densidade_plantio: plantioData.densidade_plantio || null,
+          fertilizacao: plantioData.fertilizacao || null,
+          status: "plantio",
+          progresso_percentual: 0
+        }
+      ]).select().single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["plantios"] });
+      toast({
+        title: "Plantio registrado",
+        description: "O novo plantio foi registrado com sucesso.",
+      });
+      setIsAddOpen(false);
+      setNewPlantio({
+        cultura_id: "", talhao_id: "", area_plantada: "", data_plantio: "",
+        previsao_colheita: "", variedade: "", densidade_plantio: "", fertilizacao: ""
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro ao registrar",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleAddPlantio = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPlantio.cultura_id || !newPlantio.talhao_id || !newPlantio.area_plantada || !newPlantio.data_plantio) {
+      toast({ title: "Preencha os campos obrigatórios", variant: "destructive" });
+      return;
+    }
+    addPlantioMutation.mutate(newPlantio);
+  };
+
+  const areaTotal = plantios?.reduce((acc, p) => acc + Number(p.area_plantada), 0) || 0;
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-display font-bold text-foreground">Plantio & Colheita</h1>
           <p className="text-muted-foreground text-sm mt-1">Gerencie o ciclo completo das suas culturas</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2.5 rounded-lg gradient-primary text-primary-foreground text-sm font-medium shadow-glow hover:opacity-90 transition-opacity">
-          <Plus className="w-4 h-4" />
-          Novo Plantio
-        </button>
+        
+        <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+          <DialogTrigger asChild>
+            <button className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg gradient-primary text-primary-foreground text-sm font-medium shadow-glow hover:opacity-90 transition-opacity">
+              <Plus className="w-4 h-4" />
+              Novo Plantio
+            </button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[550px]">
+            <DialogHeader>
+              <DialogTitle>Registrar Novo Plantio</DialogTitle>
+              <DialogDescription>
+                Insira as informações do novo ciclo de cultivo.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleAddPlantio} className="space-y-4 pt-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="cultura">Cultura *</Label>
+                  <Select 
+                    value={newPlantio.cultura_id} 
+                    onValueChange={(val) => setNewPlantio({...newPlantio, cultura_id: val})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {culturas?.map(c => (
+                        <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="variedade">Variedade/Cultivar</Label>
+                  <Input 
+                    id="variedade" 
+                    value={newPlantio.variedade}
+                    onChange={(e) => setNewPlantio({...newPlantio, variedade: e.target.value})}
+                    placeholder="Ex: TMG 2381" 
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="talhao">Talhão *</Label>
+                  <Select 
+                    value={newPlantio.talhao_id} 
+                    onValueChange={(val) => {
+                      const talhao = talhoes?.find(t => t.id === val);
+                      setNewPlantio({
+                        ...newPlantio, 
+                        talhao_id: val,
+                        area_plantada: talhao ? String(talhao.area) : newPlantio.area_plantada
+                      });
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {talhoes?.map(t => (
+                        <SelectItem key={t.id} value={t.id}>{t.nome} ({t.fazendas?.nome})</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="area_plantada">Área Plantada (ha) *</Label>
+                  <Input 
+                    id="area_plantada" 
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    required
+                    value={newPlantio.area_plantada}
+                    onChange={(e) => setNewPlantio({...newPlantio, area_plantada: e.target.value})}
+                    placeholder="Ex: 100" 
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="data_plantio">Data de Plantio *</Label>
+                  <Input 
+                    id="data_plantio" 
+                    type="date"
+                    required
+                    value={newPlantio.data_plantio}
+                    onChange={(e) => setNewPlantio({...newPlantio, data_plantio: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="previsao_colheita">Previsão de Colheita</Label>
+                  <Input 
+                    id="previsao_colheita" 
+                    type="date"
+                    value={newPlantio.previsao_colheita}
+                    onChange={(e) => setNewPlantio({...newPlantio, previsao_colheita: e.target.value})}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="densidade">Densidade de Plantio</Label>
+                  <Input 
+                    id="densidade" 
+                    value={newPlantio.densidade_plantio}
+                    onChange={(e) => setNewPlantio({...newPlantio, densidade_plantio: e.target.value})}
+                    placeholder="Ex: 14 sem/m" 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="fertilizacao">Adubação/Fertilização</Label>
+                  <Input 
+                    id="fertilizacao" 
+                    value={newPlantio.fertilizacao}
+                    onChange={(e) => setNewPlantio({...newPlantio, fertilizacao: e.target.value})}
+                    placeholder="Ex: MAP 300kg/ha" 
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-4">
+                <Button type="button" variant="outline" className="mr-2" onClick={() => setIsAddOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={addPlantioMutation.isPending}>
+                  {addPlantioMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                  Registrar Plantio
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard icon={Sprout} title="Área Plantada" value="830 ha" change="Safra 2025/26" changeType="neutral" delay={0} />
-        <MetricCard icon={Wheat} title="Prod. Estimada" value="4.850 ton" change="+12% vs anterior" changeType="positive" delay={0.1} />
-        <MetricCard icon={Calendar} title="Próx. Colheita" value="20/02/2026" change="Soja - Talhão 1" changeType="neutral" delay={0.2} />
-        <MetricCard icon={TrendingUp} title="Produtividade Méd." value="68 sc/ha" change="+6% vs safra ant." changeType="positive" delay={0.3} />
+        <MetricCard icon={Sprout} title="Área Plantada" value={`${areaTotal.toFixed(2)} ha`} change="Total em produção" changeType="neutral" delay={0} />
+        <MetricCard icon={Wheat} title="Prod. Estimada" value="-" change="Calculando..." changeType="neutral" delay={0.1} />
+        <MetricCard icon={Calendar} title="Plantios Ativos" value={plantios?.length?.toString() || "0"} change="Em andamento" changeType="neutral" delay={0.2} />
+        <MetricCard icon={TrendingUp} title="Produtividade Méd." value="-" change="Aguardando colheita" changeType="neutral" delay={0.3} />
       </div>
 
       {/* Active plantings */}
       <div className="space-y-3">
         <h3 className="font-display font-semibold text-foreground">Culturas Ativas</h3>
-        {safras.map((s, i) => (
-          <motion.div
-            key={s.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.08 }}
-            className="bg-card rounded-xl p-5 shadow-card border border-border hover:shadow-card-hover transition-shadow"
-          >
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-accent flex items-center justify-center">
-                  <Leaf className="w-5 h-5 text-accent-foreground" />
-                </div>
-                <div>
-                  <h4 className="font-display font-semibold text-foreground">{s.cultura} — {s.variedade}</h4>
-                  <p className="text-xs text-muted-foreground">{s.talhao} · {s.area}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusColor[s.status] || "bg-muted text-muted-foreground"}`}>
-                  {s.status}
-                </span>
-                <ChevronRight className="w-4 h-4 text-muted-foreground" />
-              </div>
-            </div>
+        
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : plantios?.length === 0 ? (
+          <div className="text-center py-12 bg-card rounded-xl border border-border">
+            <p className="text-muted-foreground">Nenhum plantio registrado ainda.</p>
+          </div>
+        ) : (
+          plantios?.map((p: any, i: number) => {
+            const statusKey = p.status?.toLowerCase() || 'plantio';
             
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 text-sm">
-              <div>
-                <p className="text-muted-foreground text-xs">Plantio</p>
-                <p className="font-medium text-foreground">{s.dataPlantio}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground text-xs">Prev. Colheita</p>
-                <p className="font-medium text-foreground">{s.prevColheita}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground text-xs">Densidade</p>
-                <p className="font-medium text-foreground">{s.densidade}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground text-xs">Fertilização</p>
-                <p className="font-medium text-foreground">{s.fertilizacao}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground text-xs">Progresso</p>
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
-                    <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${s.progresso}%` }} />
+            return (
+              <motion.div
+                key={p.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.08 }}
+                className="bg-card rounded-xl p-5 shadow-card border border-border hover:shadow-card-hover transition-shadow"
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-accent flex items-center justify-center">
+                      <Leaf className="w-5 h-5 text-accent-foreground" />
+                    </div>
+                    <div>
+                      <h4 className="font-display font-semibold text-foreground">
+                        {p.culturas?.nome} {p.variedade ? `— ${p.variedade}` : ''}
+                      </h4>
+                      <p className="text-xs text-muted-foreground">{p.talhoes?.nome} · {p.area_plantada} ha</p>
+                    </div>
                   </div>
-                  <span className="font-medium text-foreground text-xs">{s.progresso}%</span>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full capitalize ${statusColor[statusKey] || "bg-muted text-muted-foreground"}`}>
+                      {p.status || 'Plantio'}
+                    </span>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  </div>
                 </div>
-              </div>
-            </div>
-          </motion.div>
-        ))}
+                
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 text-sm">
+                  <div>
+                    <p className="text-muted-foreground text-xs">Plantio</p>
+                    <p className="font-medium text-foreground">
+                      {p.data_plantio ? format(new Date(p.data_plantio), 'dd/MM/yyyy') : '-'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-xs">Prev. Colheita</p>
+                    <p className="font-medium text-foreground">
+                      {p.previsao_colheita ? format(new Date(p.previsao_colheita), 'dd/MM/yyyy') : '-'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-xs">Densidade</p>
+                    <p className="font-medium text-foreground">{p.densidade_plantio || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-xs">Fertilização</p>
+                    <p className="font-medium text-foreground">{p.fertilizacao || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-xs">Progresso</p>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
+                        <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${p.progresso_percentual || 0}%` }} />
+                      </div>
+                      <span className="font-medium text-foreground text-xs">{p.progresso_percentual || 0}%</span>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })
+        )}
       </div>
 
       {/* Charts */}
