@@ -1,4 +1,4 @@
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polygon } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -42,18 +42,41 @@ export function FarmMap({ fazendas }: FarmMapProps) {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         {fazendas?.map((farm) => {
-          if (farm.latitude && farm.longitude) {
-            return (
-              <Marker key={farm.id} position={[Number(farm.latitude), Number(farm.longitude)]}>
-                <Popup className="rounded-lg">
-                  <div className="font-semibold text-base">{farm.nome}</div>
-                  <div className="text-sm text-muted-foreground">{farm.area_total} ha</div>
-                  {farm.cidade && <div className="text-xs mt-1">{farm.cidade} - {farm.estado}</div>}
-                </Popup>
-              </Marker>
-            );
-          }
-          return null;
+          return (
+            <div key={farm.id}>
+              {farm.latitude && farm.longitude && (
+                <Marker position={[Number(farm.latitude), Number(farm.longitude)]}>
+                  <Popup className="rounded-lg">
+                    <div className="font-semibold text-base">{farm.nome}</div>
+                    <div className="text-sm text-muted-foreground">{farm.area_total} ha</div>
+                    {farm.cidade && <div className="text-xs mt-1">{farm.cidade} - {farm.estado}</div>}
+                  </Popup>
+                </Marker>
+              )}
+              {farm.talhoes?.map((talhao: any) => {
+                if (talhao.coordenadas && Array.isArray(talhao.coordenadas)) {
+                  // Converter as coordenadas para o formato esperado pelo Leaflet [lat, lng]
+                  // Assumindo que no banco está salvo como array de [lat, lng] ou similar
+                  const pos = talhao.coordenadas as [number, number][];
+                  if (pos.length > 0) {
+                    return (
+                      <Polygon 
+                        key={talhao.id} 
+                        positions={pos}
+                        pathOptions={{ color: 'hsl(142.1 76.2% 36.3%)', fillColor: 'hsl(142.1 76.2% 36.3%)', fillOpacity: 0.4 }}
+                      >
+                        <Popup>
+                          <div className="font-semibold">{talhao.nome}</div>
+                          <div className="text-sm">Área: {talhao.area} ha</div>
+                        </Popup>
+                      </Polygon>
+                    );
+                  }
+                }
+                return null;
+              })}
+            </div>
+          );
         })}
       </MapContainer>
     </div>

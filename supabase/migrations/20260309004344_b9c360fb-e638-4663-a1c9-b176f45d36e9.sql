@@ -1,0 +1,1 @@
+ALTER TABLE public.talhoes ADD COLUMN coordenadas JSONB;

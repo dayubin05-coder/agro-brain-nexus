@@ -40,7 +40,12 @@ export default function Fazendas() {
         .from("fazendas")
         .select(`
           *,
-          talhoes (count)
+          talhoes (
+            id,
+            nome,
+            area,
+            coordenadas
+          )
         `)
         .eq('user_id', userData.user.id)
         .order('created_at', { ascending: false });
@@ -207,7 +212,7 @@ export default function Fazendas() {
           <TabsContent value="lista" className="mt-0">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {fazendas?.map((farm: any, i: number) => {
-                const talhoesCount = farm.talhoes?.[0]?.count || 0;
+                const talhoesCount = farm.talhoes?.length || 0;
             return (
               <motion.div
                 key={farm.id}
