@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import MetricCard from "@/components/MetricCard";
 import AlertCard from "@/components/AlertCard";
+import WeatherWidget from "@/components/WeatherWidget";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, PieChart, Pie, Cell,
