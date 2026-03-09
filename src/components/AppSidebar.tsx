@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -37,8 +36,12 @@ const navItems = [
   { icon: Bot, label: "IA Agrícola", path: "/ia" },
 ];
 
-export default function AppSidebar() {
-  const [collapsed, setCollapsed] = useState(false);
+interface AppSidebarProps {
+  collapsed: boolean;
+  setCollapsed: (collapsed: boolean) => void;
+}
+
+export default function AppSidebar({ collapsed, setCollapsed }: AppSidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
 
