@@ -352,6 +352,72 @@ export type Database = {
           },
         ]
       }
+      pragas_ocorrencias: {
+        Row: {
+          area_afetada: number | null
+          created_at: string
+          cultura: string | null
+          data_deteccao: string
+          fazenda_id: string
+          id: string
+          nome: string
+          observacoes: string | null
+          recomendacao: string | null
+          severidade: string
+          status: string
+          talhao_id: string | null
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          area_afetada?: number | null
+          created_at?: string
+          cultura?: string | null
+          data_deteccao?: string
+          fazenda_id: string
+          id?: string
+          nome: string
+          observacoes?: string | null
+          recomendacao?: string | null
+          severidade?: string
+          status?: string
+          talhao_id?: string | null
+          tipo?: string
+          updated_at?: string
+        }
+        Update: {
+          area_afetada?: number | null
+          created_at?: string
+          cultura?: string | null
+          data_deteccao?: string
+          fazenda_id?: string
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          recomendacao?: string | null
+          severidade?: string
+          status?: string
+          talhao_id?: string | null
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pragas_ocorrencias_fazenda_id_fkey"
+            columns: ["fazenda_id"]
+            isOneToOne: false
+            referencedRelation: "fazendas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pragas_ocorrencias_talhao_id_fkey"
+            columns: ["talhao_id"]
+            isOneToOne: false
+            referencedRelation: "talhoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
