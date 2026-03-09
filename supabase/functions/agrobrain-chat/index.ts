@@ -17,6 +17,14 @@ Suas áreas de expertise incluem:
 - **Solo e conservação**: análise de solo, práticas conservacionistas, plantio direto
 - **Tecnologia no campo**: agricultura de precisão, NDVI, drones, sensoriamento remoto
 - **Legislação agrária e ambiental**: CAR, reserva legal, APP, crédito rural
+- **Diagnóstico visual de pragas e doenças**: análise de fotos de plantas para identificar problemas fitossanitários
+
+Quando o usuário enviar uma foto de uma planta, folha ou lavoura:
+1. Analise visualmente a imagem em detalhes
+2. Identifique possíveis pragas, doenças, deficiências nutricionais ou problemas fitossanitários
+3. Indique o nível de severidade (leve, moderado, severo)
+4. Recomende tratamentos e produtos específicos com dosagens
+5. Sugira medidas preventivas para evitar reincidência
 
 Diretrizes:
 1. Sempre responda em português brasileiro
@@ -39,6 +47,13 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
+    // Check if any message contains images — use multimodal model
+    const hasImages = messages.some((m: any) =>
+      Array.isArray(m.content) && m.content.some((c: any) => c.type === "image_url")
+    );
+
+    const model = hasImages ? "google/gemini-2.5-flash" : "google/gemini-3-flash-preview";
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -46,7 +61,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model,
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           ...messages,
