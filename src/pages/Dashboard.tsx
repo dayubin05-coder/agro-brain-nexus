@@ -381,7 +381,25 @@ export default function Dashboard() {
             </motion.div>
           </div>
 
-          {/* Costs + Alerts */}
+          {/* Weather Widget */}
+          {primaryFarm && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.32 }}
+              className="bg-card rounded-xl p-5 shadow-card border border-border"
+            >
+              <h3 className="font-display font-semibold text-foreground mb-4 flex items-center gap-2">
+                <CloudSun className="w-5 h-5 text-primary" /> Clima — {primaryFarm.nome}
+              </h3>
+              <WeatherWidget
+                latitude={primaryFarm.latitude!}
+                longitude={primaryFarm.longitude!}
+                farmName={primaryFarm.nome}
+              />
+            </motion.div>
+          )}
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Cost chart / Recent transactions */}
             <motion.div
