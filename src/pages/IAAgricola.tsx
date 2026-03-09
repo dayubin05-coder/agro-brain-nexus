@@ -25,7 +25,7 @@ const exemploConversas = [
 export default function IAAgricola() {
   const [mensagem, setMensagem] = useState("");
   const [conversas, setConversas] = useState<{ role: string; content: string }[]>([
-    { role: "assistant", content: "Olá! Sou o assistente agrícola do AgroOS. Posso ajudar com previsões de safra, diagnóstico de pragas, recomendações de manejo e muito mais. Como posso ajudar hoje?" },
+    { role: "assistant", content: "Olá! Sou o assistente agrícola do AgroTech. Posso ajudar com previsões de safra, diagnóstico de pragas, recomendações de manejo e muito mais. Como posso ajudar hoje?" },
   ]);
 
   const enviarMensagem = () => {

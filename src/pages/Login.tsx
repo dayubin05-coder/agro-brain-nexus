@@ -60,7 +60,7 @@ export default function Login() {
             <Leaf className="w-6 h-6 text-primary-foreground" />
           </div>
           <h1 className="text-2xl font-display font-bold text-foreground">Bem-vindo de volta</h1>
-          <p className="text-muted-foreground text-sm mt-1">Acesse sua conta no AgroOS</p>
+          <p className="text-muted-foreground text-sm mt-1">Acesse sua conta no AgroTech</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
