@@ -412,6 +412,7 @@ export type Database = {
       talhoes: {
         Row: {
           area: number
+          coordenadas: Json | null
           created_at: string
           fazenda_id: string
           id: string
@@ -421,6 +422,7 @@ export type Database = {
         }
         Insert: {
           area: number
+          coordenadas?: Json | null
           created_at?: string
           fazenda_id: string
           id?: string
@@ -430,6 +432,7 @@ export type Database = {
         }
         Update: {
           area?: number
+          coordenadas?: Json | null
           created_at?: string
           fazenda_id?: string
           id?: string
