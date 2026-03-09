@@ -143,6 +143,25 @@ export default function Dashboard() {
     },
   });
 
+  // Fetch fazendas for weather (get first farm with coordinates)
+  const { data: fazendasData } = useQuery({
+    queryKey: ["dashboard-fazendas"],
+    enabled: !!userData,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("fazendas")
+        .select("id, nome, latitude, longitude")
+        .eq("user_id", userData?.id!)
+        .not("latitude", "is", null)
+        .not("longitude", "is", null)
+        .limit(3);
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const primaryFarm = fazendasData?.[0];
+
   // Calculate KPIs
   const totalAreaPlantada = plantiosData?.reduce((acc, p) => acc + Number(p.area_plantada), 0) || 0;
   const plantiosAtivos = plantiosData?.length || 0;
