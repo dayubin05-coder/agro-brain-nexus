@@ -195,10 +195,19 @@ export default function Fazendas() {
           <p className="text-muted-foreground">Nenhuma fazenda cadastrada ainda.</p>
         </div>
       ) : (
-        /* Cards */
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {fazendas?.map((farm: any, i: number) => {
-            const talhoesCount = farm.talhoes?.[0]?.count || 0;
+        <Tabs defaultValue="lista" className="w-full">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-display font-semibold text-foreground">Suas Propriedades</h2>
+            <TabsList>
+              <TabsTrigger value="lista">Lista</TabsTrigger>
+              <TabsTrigger value="mapa">Mapa</TabsTrigger>
+            </TabsList>
+          </div>
+          
+          <TabsContent value="lista" className="mt-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {fazendas?.map((farm: any, i: number) => {
+                const talhoesCount = farm.talhoes?.[0]?.count || 0;
             return (
               <motion.div
                 key={farm.id}
