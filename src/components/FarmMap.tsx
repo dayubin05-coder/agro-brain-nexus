@@ -84,6 +84,7 @@ interface FarmMapProps {
 export function FarmMap({ fazendas }: FarmMapProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [isDrawOpen, setIsDrawOpen] = useState(false);
   const [currentCoords, setCurrentCoords] = useState<any[]>([]);
@@ -95,10 +96,14 @@ export function FarmMap({ fazendas }: FarmMapProps) {
     fazenda_id: ''
   });
 
+  // GIS import state
+  const [isImportOpen, setIsImportOpen] = useState(false);
+  const [importedPolygons, setImportedPolygons] = useState<Array<{ name: string; coords: [number, number][] }>>([]);
+  const [importFazendaId, setImportFazendaId] = useState('');
+  const [isImporting, setIsImporting] = useState(false);
+
   // Default center (Brazil)
   const defaultCenter: [number, number] = [-14.2350, -51.9253];
-  
-  // Find first farm with coordinates to center the map, otherwise use default
   const centerFarm = fazendas?.find(f => f.latitude && f.longitude);
   const center: [number, number] = centerFarm 
     ? [Number(centerFarm.latitude), Number(centerFarm.longitude)] 
@@ -107,12 +112,9 @@ export function FarmMap({ fazendas }: FarmMapProps) {
   const handlePolygonCreate = (coords: any[], layer: any) => {
     setCurrentCoords(coords);
     setCurrentLayer(layer);
-    
-    // Auto-select farm if there is only one
     if (fazendas && fazendas.length === 1) {
       setNewTalhao(prev => ({ ...prev, fazenda_id: fazendas[0].id }));
     }
-    
     setIsDrawOpen(true);
   };
 
@@ -129,7 +131,6 @@ export function FarmMap({ fazendas }: FarmMapProps) {
       toast({ title: "Preencha todos os campos", variant: "destructive" });
       return;
     }
-
     try {
       setIsSaving(true);
       const { error } = await supabase.from('talhoes').insert({
@@ -138,21 +139,106 @@ export function FarmMap({ fazendas }: FarmMapProps) {
         fazenda_id: newTalhao.fazenda_id,
         coordenadas: currentCoords
       });
-      
       if (error) throw error;
-      
       toast({ title: "Talhão salvo com sucesso!" });
       queryClient.invalidateQueries({ queryKey: ["fazendas"] });
-      
-      if (currentLayer) {
-        currentLayer.remove();
-      }
+      if (currentLayer) currentLayer.remove();
       setIsDrawOpen(false);
       setNewTalhao({ nome: '', area: '', fazenda_id: '' });
     } catch (error: any) {
       toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  // ---- GIS Import ----
+  const parseGeoJSON = (geojson: any): Array<{ name: string; coords: [number, number][] }> => {
+    const polygons: Array<{ name: string; coords: [number, number][] }> = [];
+    const features = geojson.features || [];
+    features.forEach((feature: any, idx: number) => {
+      if (!feature.geometry) return;
+      const { type, coordinates } = feature.geometry;
+      const name = feature.properties?.name || feature.properties?.Name || feature.properties?.nome || `Talhão ${idx + 1}`;
+      
+      const extractPolygon = (ring: number[][]) => {
+        return ring.map(([lng, lat]) => [lat, lng] as [number, number]);
+      };
+
+      if (type === 'Polygon') {
+        polygons.push({ name, coords: extractPolygon(coordinates[0]) });
+      } else if (type === 'MultiPolygon') {
+        coordinates.forEach((poly: number[][][], pi: number) => {
+          polygons.push({ name: `${name} (${pi + 1})`, coords: extractPolygon(poly[0]) });
+        });
+      }
+    });
+    return polygons;
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      let polygons: Array<{ name: string; coords: [number, number][] }> = [];
+
+      if (file.name.endsWith('.geojson') || file.name.endsWith('.json')) {
+        const geojson = JSON.parse(text);
+        polygons = parseGeoJSON(geojson);
+      } else if (file.name.endsWith('.kml')) {
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(text, 'text/xml');
+        const geojson = kml(xmlDoc);
+        polygons = parseGeoJSON(geojson);
+      } else {
+        toast({ title: "Formato não suportado", description: "Use arquivos .geojson ou .kml", variant: "destructive" });
+        return;
+      }
+
+      if (polygons.length === 0) {
+        toast({ title: "Nenhum polígono encontrado", description: "O arquivo não contém polígonos válidos.", variant: "destructive" });
+        return;
+      }
+
+      setImportedPolygons(polygons);
+      if (fazendas && fazendas.length === 1) {
+        setImportFazendaId(fazendas[0].id);
+      }
+      setIsImportOpen(true);
+    } catch (err: any) {
+      toast({ title: "Erro ao ler arquivo", description: err.message, variant: "destructive" });
+    }
+
+    // Reset input
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleImportSave = async () => {
+    if (!importFazendaId) {
+      toast({ title: "Selecione uma fazenda", variant: "destructive" });
+      return;
+    }
+    try {
+      setIsImporting(true);
+      const inserts = importedPolygons.map(p => ({
+        nome: p.name,
+        area: 0,
+        fazenda_id: importFazendaId,
+        coordenadas: p.coords
+      }));
+      const { error } = await supabase.from('talhoes').insert(inserts);
+      if (error) throw error;
+      toast({ title: `${importedPolygons.length} talhões importados com sucesso!` });
+      queryClient.invalidateQueries({ queryKey: ["fazendas"] });
+      setIsImportOpen(false);
+      setImportedPolygons([]);
+      setImportFazendaId('');
+    } catch (error: any) {
+      toast({ title: "Erro ao importar", description: error.message, variant: "destructive" });
+    } finally {
+      setIsImporting(false);
     }
   };
 
