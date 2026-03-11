@@ -19,7 +19,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Upload, FileUp } from "lucide-react";
+import { Loader2, Upload, FileUp, Layers, Satellite, Map as MapIcon, Leaf } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { kml } from '@tmcw/togeojson';
 
 // Fix for default marker icon in react-leaflet
@@ -101,6 +102,38 @@ export function FarmMap({ fazendas }: FarmMapProps) {
   const [importedPolygons, setImportedPolygons] = useState<Array<{ name: string; coords: [number, number][] }>>([]);
   const [importFazendaId, setImportFazendaId] = useState('');
   const [isImporting, setIsImporting] = useState(false);
+
+  // Layer state
+  type MapLayer = 'street' | 'satellite' | 'ndvi';
+  const [activeLayer, setActiveLayer] = useState<MapLayer>('street');
+
+  // Generate deterministic NDVI value per talhão id
+  const getNdviValue = (id: string): number => {
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) {
+      hash = ((hash << 5) - hash) + id.charCodeAt(i);
+      hash |= 0;
+    }
+    return Math.abs(hash % 100) / 100; // 0.0 to 1.0
+  };
+
+  const getNdviColor = (ndvi: number): string => {
+    if (ndvi < 0.2) return '#d73027'; // Very low - red
+    if (ndvi < 0.35) return '#fc8d59'; // Low - orange
+    if (ndvi < 0.5) return '#fee08b'; // Medium-low - yellow
+    if (ndvi < 0.65) return '#d9ef8b'; // Medium - light green
+    if (ndvi < 0.8) return '#66bd63'; // High - green
+    return '#1a9850'; // Very high - dark green
+  };
+
+  const getNdviLabel = (ndvi: number): string => {
+    if (ndvi < 0.2) return 'Muito Baixo';
+    if (ndvi < 0.35) return 'Baixo';
+    if (ndvi < 0.5) return 'Moderado';
+    if (ndvi < 0.65) return 'Bom';
+    if (ndvi < 0.8) return 'Alto';
+    return 'Muito Alto';
+  };
 
   // Default center (Brazil)
   const defaultCenter: [number, number] = [-14.2350, -51.9253];
@@ -264,6 +297,68 @@ export function FarmMap({ fazendas }: FarmMapProps) {
         </Button>
       </div>
 
+      {/* Layer switcher */}
+      <div className="absolute top-3 left-14 z-[1000] flex gap-1 bg-background/90 backdrop-blur-sm rounded-lg p-1 shadow-md border border-border">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={() => setActiveLayer('street')}
+              className={`p-2 rounded-md transition-colors ${activeLayer === 'street' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground'}`}
+            >
+              <MapIcon className="w-4 h-4" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>Mapa</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={() => setActiveLayer('satellite')}
+              className={`p-2 rounded-md transition-colors ${activeLayer === 'satellite' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground'}`}
+            >
+              <Satellite className="w-4 h-4" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>Satélite</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={() => setActiveLayer('ndvi')}
+              className={`p-2 rounded-md transition-colors ${activeLayer === 'ndvi' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground'}`}
+            >
+              <Leaf className="w-4 h-4" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>NDVI</TooltipContent>
+        </Tooltip>
+      </div>
+
+      {/* NDVI Legend */}
+      {activeLayer === 'ndvi' && (
+        <div className="absolute bottom-4 left-4 z-[1000] bg-background/90 backdrop-blur-sm rounded-lg p-3 shadow-md border border-border text-xs">
+          <div className="font-semibold text-foreground mb-2 flex items-center gap-1.5">
+            <Leaf className="w-3.5 h-3.5" />
+            Índice NDVI (Simulado)
+          </div>
+          <div className="space-y-1">
+            {[
+              { color: '#1a9850', label: 'Muito Alto (0.8-1.0)' },
+              { color: '#66bd63', label: 'Alto (0.65-0.8)' },
+              { color: '#d9ef8b', label: 'Bom (0.5-0.65)' },
+              { color: '#fee08b', label: 'Moderado (0.35-0.5)' },
+              { color: '#fc8d59', label: 'Baixo (0.2-0.35)' },
+              { color: '#d73027', label: 'Muito Baixo (0-0.2)' },
+            ].map(item => (
+              <div key={item.color} className="flex items-center gap-2">
+                <div className="w-4 h-3 rounded-sm" style={{ backgroundColor: item.color }} />
+                <span className="text-muted-foreground">{item.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="h-[500px] w-full rounded-xl overflow-hidden border border-border">
         <MapContainer 
           center={center} 
@@ -271,10 +366,18 @@ export function FarmMap({ fazendas }: FarmMapProps) {
           scrollWheelZoom={true} 
           style={{ height: '100%', width: '100%', zIndex: 1 }}
         >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
+          {activeLayer === 'street' && (
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+          )}
+          {(activeLayer === 'satellite' || activeLayer === 'ndvi') && (
+            <TileLayer
+              attribution='&copy; <a href="https://www.esri.com">Esri</a>'
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+            />
+          )}
           
           <GeomanSetup onPolygonCreate={handlePolygonCreate} />
 
@@ -293,15 +396,32 @@ export function FarmMap({ fazendas }: FarmMapProps) {
                 if (talhao.coordenadas && Array.isArray(talhao.coordenadas)) {
                   const pos = talhao.coordenadas as [number, number][];
                   if (pos.length > 0) {
+                    const ndvi = getNdviValue(talhao.id);
+                    const isNdviMode = activeLayer === 'ndvi';
+                    const color = isNdviMode ? getNdviColor(ndvi) : 'hsl(142.1 76.2% 36.3%)';
                     return (
                       <Polygon 
                         key={talhao.id} 
                         positions={pos}
-                        pathOptions={{ color: 'hsl(142.1 76.2% 36.3%)', fillColor: 'hsl(142.1 76.2% 36.3%)', fillOpacity: 0.4 }}
+                        pathOptions={{ 
+                          color: isNdviMode ? color : 'hsl(142.1 76.2% 36.3%)', 
+                          fillColor: color, 
+                          fillOpacity: isNdviMode ? 0.7 : 0.4,
+                          weight: isNdviMode ? 2 : 1,
+                        }}
                       >
                         <Popup>
                           <div className="font-semibold">{talhao.nome}</div>
                           <div className="text-sm">Área: {talhao.area} ha</div>
+                          {isNdviMode && (
+                            <div className="mt-1.5 pt-1.5 border-t">
+                              <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: color }} />
+                                <span className="text-sm font-medium">NDVI: {ndvi.toFixed(2)}</span>
+                              </div>
+                              <div className="text-xs text-muted-foreground">Vigor: {getNdviLabel(ndvi)}</div>
+                            </div>
+                          )}
                           <div className="text-xs text-muted-foreground mt-1">Fazenda: {farm.nome}</div>
                         </Popup>
                       </Polygon>
