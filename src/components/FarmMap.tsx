@@ -244,6 +244,26 @@ export function FarmMap({ fazendas }: FarmMapProps) {
 
   return (
     <div className="relative">
+      {/* Import button */}
+      <div className="absolute top-3 right-3 z-[1000]">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".geojson,.json,.kml"
+          className="hidden"
+          onChange={handleFileSelect}
+        />
+        <Button
+          size="sm"
+          variant="secondary"
+          className="shadow-md gap-2"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <FileUp className="w-4 h-4" />
+          Importar GeoJSON/KML
+        </Button>
+      </div>
+
       <div className="h-[500px] w-full rounded-xl overflow-hidden border border-border">
         <MapContainer 
           center={center} 
@@ -258,45 +278,44 @@ export function FarmMap({ fazendas }: FarmMapProps) {
           
           <GeomanSetup onPolygonCreate={handlePolygonCreate} />
 
-          {fazendas?.map((farm) => {
-            return (
-              <div key={farm.id}>
-                {farm.latitude && farm.longitude && (
-                  <Marker position={[Number(farm.latitude), Number(farm.longitude)]}>
-                    <Popup className="rounded-lg">
-                      <div className="font-semibold text-base">{farm.nome}</div>
-                      <div className="text-sm text-muted-foreground">{farm.area_total} ha</div>
-                      {farm.cidade && <div className="text-xs mt-1">{farm.cidade} - {farm.estado}</div>}
-                    </Popup>
-                  </Marker>
-                )}
-                {farm.talhoes?.map((talhao: any) => {
-                  if (talhao.coordenadas && Array.isArray(talhao.coordenadas)) {
-                    const pos = talhao.coordenadas as [number, number][];
-                    if (pos.length > 0) {
-                      return (
-                        <Polygon 
-                          key={talhao.id} 
-                          positions={pos}
-                          pathOptions={{ color: 'hsl(142.1 76.2% 36.3%)', fillColor: 'hsl(142.1 76.2% 36.3%)', fillOpacity: 0.4 }}
-                        >
-                          <Popup>
-                            <div className="font-semibold">{talhao.nome}</div>
-                            <div className="text-sm">Área: {talhao.area} ha</div>
-                            <div className="text-xs text-muted-foreground mt-1">Fazenda: {farm.nome}</div>
-                          </Popup>
-                        </Polygon>
-                      );
-                    }
+          {fazendas?.map((farm) => (
+            <div key={farm.id}>
+              {farm.latitude && farm.longitude && (
+                <Marker position={[Number(farm.latitude), Number(farm.longitude)]}>
+                  <Popup className="rounded-lg">
+                    <div className="font-semibold text-base">{farm.nome}</div>
+                    <div className="text-sm text-muted-foreground">{farm.area_total} ha</div>
+                    {farm.cidade && <div className="text-xs mt-1">{farm.cidade} - {farm.estado}</div>}
+                  </Popup>
+                </Marker>
+              )}
+              {farm.talhoes?.map((talhao: any) => {
+                if (talhao.coordenadas && Array.isArray(talhao.coordenadas)) {
+                  const pos = talhao.coordenadas as [number, number][];
+                  if (pos.length > 0) {
+                    return (
+                      <Polygon 
+                        key={talhao.id} 
+                        positions={pos}
+                        pathOptions={{ color: 'hsl(142.1 76.2% 36.3%)', fillColor: 'hsl(142.1 76.2% 36.3%)', fillOpacity: 0.4 }}
+                      >
+                        <Popup>
+                          <div className="font-semibold">{talhao.nome}</div>
+                          <div className="text-sm">Área: {talhao.area} ha</div>
+                          <div className="text-xs text-muted-foreground mt-1">Fazenda: {farm.nome}</div>
+                        </Popup>
+                      </Polygon>
+                    );
                   }
-                  return null;
-                })}
-              </div>
-            );
-          })}
+                }
+                return null;
+              })}
+            </div>
+          ))}
         </MapContainer>
       </div>
 
+      {/* Draw dialog */}
       <Dialog open={isDrawOpen} onOpenChange={(open) => !open && handleCancel()}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -308,49 +327,73 @@ export function FarmMap({ fazendas }: FarmMapProps) {
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="fazenda">Fazenda</Label>
-              <Select 
-                value={newTalhao.fazenda_id} 
-                onValueChange={(val) => setNewTalhao({...newTalhao, fazenda_id: val})}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione a fazenda" />
-                </SelectTrigger>
+              <Select value={newTalhao.fazenda_id} onValueChange={(val) => setNewTalhao({...newTalhao, fazenda_id: val})}>
+                <SelectTrigger><SelectValue placeholder="Selecione a fazenda" /></SelectTrigger>
                 <SelectContent>
-                  {fazendas?.map(f => (
-                    <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>
-                  ))}
+                  {fazendas?.map(f => (<SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="nome">Nome ou Identificação do Talhão</Label>
-              <Input 
-                id="nome" 
-                value={newTalhao.nome}
-                onChange={(e) => setNewTalhao({...newTalhao, nome: e.target.value})}
-                placeholder="Ex: Talhão 01, Lote Sul..." 
-              />
+              <Label htmlFor="nome">Nome do Talhão</Label>
+              <Input id="nome" value={newTalhao.nome} onChange={(e) => setNewTalhao({...newTalhao, nome: e.target.value})} placeholder="Ex: Talhão 01" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="area">Área (hectares)</Label>
-              <Input 
-                id="area" 
-                type="number"
-                min="0"
-                step="0.01"
-                value={newTalhao.area}
-                onChange={(e) => setNewTalhao({...newTalhao, area: e.target.value})}
-                placeholder="Ex: 50.5" 
-              />
+              <Input id="area" type="number" min="0" step="0.01" value={newTalhao.area} onChange={(e) => setNewTalhao({...newTalhao, area: e.target.value})} placeholder="Ex: 50.5" />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={handleCancel} disabled={isSaving}>
-              Cancelar
-            </Button>
+            <Button variant="outline" onClick={handleCancel} disabled={isSaving}>Cancelar</Button>
             <Button onClick={handleSave} disabled={isSaving}>
               {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Salvar Talhão
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Import dialog */}
+      <Dialog open={isImportOpen} onOpenChange={(open) => { if (!open) { setIsImportOpen(false); setImportedPolygons([]); } }}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Upload className="w-5 h-5" />
+              Importar Talhões
+            </DialogTitle>
+            <DialogDescription>
+              {importedPolygons.length} polígono(s) encontrado(s) no arquivo. Selecione a fazenda para importar.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Fazenda de destino</Label>
+              <Select value={importFazendaId} onValueChange={setImportFazendaId}>
+                <SelectTrigger><SelectValue placeholder="Selecione a fazenda" /></SelectTrigger>
+                <SelectContent>
+                  {fazendas?.map(f => (<SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Polígonos a importar</Label>
+              <div className="max-h-48 overflow-y-auto space-y-1.5 rounded-lg border border-border p-3 bg-muted/30">
+                {importedPolygons.map((p, i) => (
+                  <div key={i} className="flex items-center justify-between text-sm py-1.5 px-2 rounded bg-background">
+                    <span className="font-medium text-foreground">{p.name}</span>
+                    <span className="text-muted-foreground">{p.coords.length} vértices</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setIsImportOpen(false); setImportedPolygons([]); }} disabled={isImporting}>
+              Cancelar
+            </Button>
+            <Button onClick={handleImportSave} disabled={isImporting}>
+              {isImporting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Importar {importedPolygons.length} talhão(ões)
             </Button>
           </DialogFooter>
         </DialogContent>
