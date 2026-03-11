@@ -103,6 +103,38 @@ export function FarmMap({ fazendas }: FarmMapProps) {
   const [importFazendaId, setImportFazendaId] = useState('');
   const [isImporting, setIsImporting] = useState(false);
 
+  // Layer state
+  type MapLayer = 'street' | 'satellite' | 'ndvi';
+  const [activeLayer, setActiveLayer] = useState<MapLayer>('street');
+
+  // Generate deterministic NDVI value per talhão id
+  const getNdviValue = (id: string): number => {
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) {
+      hash = ((hash << 5) - hash) + id.charCodeAt(i);
+      hash |= 0;
+    }
+    return Math.abs(hash % 100) / 100; // 0.0 to 1.0
+  };
+
+  const getNdviColor = (ndvi: number): string => {
+    if (ndvi < 0.2) return '#d73027'; // Very low - red
+    if (ndvi < 0.35) return '#fc8d59'; // Low - orange
+    if (ndvi < 0.5) return '#fee08b'; // Medium-low - yellow
+    if (ndvi < 0.65) return '#d9ef8b'; // Medium - light green
+    if (ndvi < 0.8) return '#66bd63'; // High - green
+    return '#1a9850'; // Very high - dark green
+  };
+
+  const getNdviLabel = (ndvi: number): string => {
+    if (ndvi < 0.2) return 'Muito Baixo';
+    if (ndvi < 0.35) return 'Baixo';
+    if (ndvi < 0.5) return 'Moderado';
+    if (ndvi < 0.65) return 'Bom';
+    if (ndvi < 0.8) return 'Alto';
+    return 'Muito Alto';
+  };
+
   // Default center (Brazil)
   const defaultCenter: [number, number] = [-14.2350, -51.9253];
   const centerFarm = fazendas?.find(f => f.latitude && f.longitude);
