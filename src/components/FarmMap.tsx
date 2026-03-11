@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polygon, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
@@ -19,7 +19,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import { Loader2, Upload, FileUp } from "lucide-react";
+import { kml } from '@tmcw/togeojson';
 
 // Fix for default marker icon in react-leaflet
 import icon from 'leaflet/dist/images/marker-icon.png';
