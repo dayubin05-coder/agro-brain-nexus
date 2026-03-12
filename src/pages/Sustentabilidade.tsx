@@ -59,9 +59,8 @@ const PIE_COLORS = ["hsl(var(--success))", "hsl(var(--info))", "hsl(var(--warnin
 export default function Sustentabilidade() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { data: fazendas } = useUserFazendas();
+  const { fazendas } = useUserFazendas();
   const [isAddOpen, setIsAddOpen] = useState(false);
-  const [selectedCategoria, setSelectedCategoria] = useState("ambiental");
   const [form, setForm] = useState({
     fazenda_id: "",
     categoria: "ambiental",
