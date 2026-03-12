@@ -41,9 +41,10 @@ const navItems = [
 interface AppSidebarProps {
   collapsed: boolean;
   setCollapsed: (collapsed: boolean) => void;
+  onNavigate?: () => void;
 }
 
-export default function AppSidebar({ collapsed, setCollapsed }: AppSidebarProps) {
+export default function AppSidebar({ collapsed, setCollapsed, onNavigate }: AppSidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -84,7 +85,7 @@ export default function AppSidebar({ collapsed, setCollapsed }: AppSidebarProps)
           return (
             <button
               key={item.path}
-              onClick={() => navigate(item.path)}
+              onClick={() => { navigate(item.path); onNavigate?.(); }}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group
                 ${isActive
                   ? "bg-sidebar-accent text-sidebar-primary"
@@ -122,7 +123,7 @@ export default function AppSidebar({ collapsed, setCollapsed }: AppSidebarProps)
             await supabase.auth.signOut();
             navigate("/login");
           }}
-          className="w-full flex items-center justify-center py-2 rounded-lg text-sidebar-foreground/50 hover:text-red-500 hover:bg-sidebar-accent/50 transition-colors group"
+          className="w-full flex items-center justify-center py-2 rounded-lg text-sidebar-foreground/50 hover:text-destructive hover:bg-sidebar-accent/50 transition-colors group"
           title="Sair"
         >
           <LogOut className="w-4 h-4" />
