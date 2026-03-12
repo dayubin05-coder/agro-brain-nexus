@@ -123,7 +123,7 @@ export default function AppSidebar({ collapsed, setCollapsed, onNavigate }: AppS
             await supabase.auth.signOut();
             navigate("/login");
           }}
-          className="w-full flex items-center justify-center py-2 rounded-lg text-sidebar-foreground/50 hover:text-red-500 hover:bg-sidebar-accent/50 transition-colors group"
+          className="w-full flex items-center justify-center py-2 rounded-lg text-sidebar-foreground/50 hover:text-destructive hover:bg-sidebar-accent/50 transition-colors group"
           title="Sair"
         >
           <LogOut className="w-4 h-4" />
