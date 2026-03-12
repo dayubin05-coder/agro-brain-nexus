@@ -16,6 +16,7 @@ import Pragas from "./pages/Pragas";
 import Mercado from "./pages/Mercado";
 import Marketplace from "./pages/Marketplace";
 import IAAgricola from "./pages/IAAgricola";
+import Sustentabilidade from "./pages/Sustentabilidade";
 import NotFound from "./pages/NotFound";
 import AuthGuard from "./components/AuthGuard";
 import Login from "./pages/Login";
@@ -48,6 +49,7 @@ const App = () => (
               <Route path="/mercado" element={<Mercado />} />
               <Route path="/marketplace" element={<Marketplace />} />
               <Route path="/ia" element={<IAAgricola />} />
+              <Route path="/sustentabilidade" element={<Sustentabilidade />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

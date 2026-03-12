@@ -17,6 +17,7 @@ import {
   ChevronRight,
   Leaf,
   LogOut,
+  Recycle,
 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -34,6 +35,7 @@ const navItems = [
   { icon: TrendingUp, label: "Mercado", path: "/mercado" },
   { icon: ShoppingCart, label: "Marketplace", path: "/marketplace" },
   { icon: Bot, label: "IA Agrícola", path: "/ia" },
+  { icon: Recycle, label: "Sustentabilidade", path: "/sustentabilidade" },
 ];
 
 interface AppSidebarProps {

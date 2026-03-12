@@ -475,6 +475,56 @@ export type Database = {
         }
         Relationships: []
       }
+      sustentabilidade_registros: {
+        Row: {
+          categoria: string
+          created_at: string
+          data: string
+          fazenda_id: string
+          id: string
+          indicador: string
+          meta: number | null
+          observacoes: string | null
+          unidade: string
+          updated_at: string
+          valor: number
+        }
+        Insert: {
+          categoria?: string
+          created_at?: string
+          data?: string
+          fazenda_id: string
+          id?: string
+          indicador: string
+          meta?: number | null
+          observacoes?: string | null
+          unidade?: string
+          updated_at?: string
+          valor?: number
+        }
+        Update: {
+          categoria?: string
+          created_at?: string
+          data?: string
+          fazenda_id?: string
+          id?: string
+          indicador?: string
+          meta?: number | null
+          observacoes?: string | null
+          unidade?: string
+          updated_at?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sustentabilidade_registros_fazenda_id_fkey"
+            columns: ["fazenda_id"]
+            isOneToOne: false
+            referencedRelation: "fazendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       talhoes: {
         Row: {
           area: number
