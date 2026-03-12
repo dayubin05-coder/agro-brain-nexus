@@ -41,9 +41,10 @@ const navItems = [
 interface AppSidebarProps {
   collapsed: boolean;
   setCollapsed: (collapsed: boolean) => void;
+  onNavigate?: () => void;
 }
 
-export default function AppSidebar({ collapsed, setCollapsed }: AppSidebarProps) {
+export default function AppSidebar({ collapsed, setCollapsed, onNavigate }: AppSidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
 
