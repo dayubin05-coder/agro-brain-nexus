@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Users, Plus, Star, Calendar, Phone, Briefcase, Loader2, Trash2 } from "lucide-react";
+import { Users, Plus, Star, Calendar, Phone, Briefcase, Loader2, Trash2, Pencil } from "lucide-react";
 import MetricCard from "@/components/MetricCard";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,82 +13,111 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const setores = ["Mecanização", "Técnico", "Administrativo", "Manutenção", "Campo", "Precisão"];
-
 const statusColor: Record<string, string> = {
-  ativo: "bg-success/10 text-success",
-  ferias: "bg-info/10 text-info",
-  afastado: "bg-warning/10 text-warning",
-  desligado: "bg-muted text-muted-foreground",
+  ativo: "bg-success/10 text-success", ferias: "bg-info/10 text-info",
+  afastado: "bg-warning/10 text-warning", desligado: "bg-muted text-muted-foreground",
 };
+const emptyForm = { fazenda_id: "", nome: "", cargo: "", setor: "", telefone: "", data_admissao: "", status: "ativo" };
 
 export default function Funcionarios() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { userData, fazendas } = useUserFazendas();
   const [isAddOpen, setIsAddOpen] = useState(false);
-  const [form, setForm] = useState({
-    fazenda_id: "", nome: "", cargo: "", setor: "", telefone: "", data_admissao: "", status: "ativo",
-  });
+  const [editingItem, setEditingItem] = useState<any>(null);
+  const [form, setForm] = useState(emptyForm);
 
   const { data: funcionarios, isLoading } = useQuery({
-    queryKey: ["funcionarios-real"],
-    enabled: !!userData,
+    queryKey: ["funcionarios-real"], enabled: !!userData,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("funcionarios")
-        .select("*, fazendas!inner(user_id, nome)")
-        .eq("fazendas.user_id", userData!.id)
-        .order("nome");
-      if (error) throw error;
-      return data;
+      const { data, error } = await supabase.from("funcionarios").select("*, fazendas!inner(user_id, nome)").eq("fazendas.user_id", userData!.id).order("nome");
+      if (error) throw error; return data;
     },
   });
 
   const addMutation = useMutation({
     mutationFn: async (f: typeof form) => {
       const { error } = await supabase.from("funcionarios").insert([{
-        fazenda_id: f.fazenda_id,
-        nome: f.nome.trim(),
-        cargo: f.cargo || null,
-        setor: f.setor || null,
-        telefone: f.telefone || null,
-        data_admissao: f.data_admissao || null,
-        status: f.status,
+        fazenda_id: f.fazenda_id, nome: f.nome.trim(), cargo: f.cargo || null, setor: f.setor || null,
+        telefone: f.telefone || null, data_admissao: f.data_admissao || null, status: f.status,
       }]);
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["funcionarios-real"] });
-      toast({ title: "Funcionário cadastrado" });
-      setIsAddOpen(false);
-      setForm({ fazenda_id: "", nome: "", cargo: "", setor: "", telefone: "", data_admissao: "", status: "ativo" });
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["funcionarios-real"] }); toast({ title: "Funcionário cadastrado" }); setIsAddOpen(false); setForm(emptyForm); },
+    onError: (e) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async (item: any) => {
+      const { error } = await supabase.from("funcionarios").update({
+        nome: item.nome.trim(), cargo: item.cargo || null, setor: item.setor || null,
+        telefone: item.telefone || null, data_admissao: item.data_admissao || null, status: item.status,
+      }).eq("id", item.id);
+      if (error) throw error;
     },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["funcionarios-real"] }); toast({ title: "Funcionário atualizado" }); setEditingItem(null); },
     onError: (e) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("funcionarios").delete().eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["funcionarios-real"] });
-      toast({ title: "Funcionário removido" });
-    },
+    mutationFn: async (id: string) => { const { error } = await supabase.from("funcionarios").delete().eq("id", id); if (error) throw error; },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["funcionarios-real"] }); toast({ title: "Funcionário removido" }); },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.fazenda_id || !form.nome) {
-      toast({ title: "Preencha os campos obrigatórios", variant: "destructive" });
-      return;
-    }
+    if (!form.fazenda_id || !form.nome) { toast({ title: "Preencha os campos obrigatórios", variant: "destructive" }); return; }
     addMutation.mutate(form);
+  };
+  const handleEditSubmit = (e: React.FormEvent) => { e.preventDefault(); updateMutation.mutate(editingItem); };
+  const openEdit = (f: any) => {
+    setEditingItem({ id: f.id, nome: f.nome, cargo: f.cargo || "", setor: f.setor || "", telefone: f.telefone || "", data_admissao: f.data_admissao || "", status: f.status || "ativo" });
   };
 
   const items = funcionarios || [];
   const ativos = items.filter(f => f.status === "ativo").length;
   const prodMedia = items.length > 0 ? Math.round(items.reduce((acc, f) => acc + (f.produtividade_percentual || 0), 0) / items.length) : 0;
+
+  const EmployeeFormFields = ({ data, setData, showFazenda = false }: { data: any; setData: (d: any) => void; showFazenda?: boolean }) => (
+    <>
+      {showFazenda && (
+        <div className="space-y-2">
+          <Label>Fazenda *</Label>
+          <Select value={data.fazenda_id} onValueChange={v => setData({ ...data, fazenda_id: v })}>
+            <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+            <SelectContent>{fazendas.map(f => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
+      )}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2"><Label>Nome Completo *</Label><Input value={data.nome} onChange={e => setData({ ...data, nome: e.target.value })} placeholder="Nome" /></div>
+        <div className="space-y-2"><Label>Cargo</Label><Input value={data.cargo} onChange={e => setData({ ...data, cargo: e.target.value })} placeholder="Ex: Operador" /></div>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label>Setor</Label>
+          <Select value={data.setor} onValueChange={v => setData({ ...data, setor: v })}>
+            <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+            <SelectContent>{setores.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2"><Label>Telefone</Label><Input value={data.telefone} onChange={e => setData({ ...data, telefone: e.target.value })} placeholder="(00) 00000-0000" /></div>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2"><Label>Data de Admissão</Label><Input type="date" value={data.data_admissao} onChange={e => setData({ ...data, data_admissao: e.target.value })} /></div>
+        <div className="space-y-2">
+          <Label>Status</Label>
+          <Select value={data.status} onValueChange={v => setData({ ...data, status: v })}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ativo">Ativo</SelectItem><SelectItem value="ferias">Férias</SelectItem>
+              <SelectItem value="afastado">Afastado</SelectItem><SelectItem value="desligado">Desligado</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+    </>
+  );
 
   return (
     <div className="space-y-6">
@@ -106,64 +135,30 @@ export default function Funcionarios() {
           <DialogContent>
             <DialogHeader><DialogTitle>Cadastrar Funcionário</DialogTitle></DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-              <div className="space-y-2">
-                <Label>Fazenda *</Label>
-                <Select value={form.fazenda_id} onValueChange={v => setForm({ ...form, fazenda_id: v })}>
-                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                  <SelectContent>{fazendas.map(f => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Nome Completo *</Label>
-                  <Input value={form.nome} onChange={e => setForm({ ...form, nome: e.target.value })} placeholder="Nome do funcionário" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Cargo</Label>
-                  <Input value={form.cargo} onChange={e => setForm({ ...form, cargo: e.target.value })} placeholder="Ex: Operador de Máquinas" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Setor</Label>
-                  <Select value={form.setor} onValueChange={v => setForm({ ...form, setor: v })}>
-                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                    <SelectContent>{setores.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Telefone</Label>
-                  <Input value={form.telefone} onChange={e => setForm({ ...form, telefone: e.target.value })} placeholder="(00) 00000-0000" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Data de Admissão</Label>
-                  <Input type="date" value={form.data_admissao} onChange={e => setForm({ ...form, data_admissao: e.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Status</Label>
-                  <Select value={form.status} onValueChange={v => setForm({ ...form, status: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ativo">Ativo</SelectItem>
-                      <SelectItem value="ferias">Férias</SelectItem>
-                      <SelectItem value="afastado">Afastado</SelectItem>
-                      <SelectItem value="desligado">Desligado</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+              <EmployeeFormFields data={form} setData={setForm} showFazenda />
               <div className="flex justify-end gap-2 pt-2">
                 <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)}>Cancelar</Button>
-                <Button type="submit" disabled={addMutation.isPending}>
-                  {addMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}Cadastrar
-                </Button>
+                <Button type="submit" disabled={addMutation.isPending}>{addMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}Cadastrar</Button>
               </div>
             </form>
           </DialogContent>
         </Dialog>
       </div>
+
+      <Dialog open={!!editingItem} onOpenChange={(o) => !o && setEditingItem(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Editar Funcionário</DialogTitle></DialogHeader>
+          {editingItem && (
+            <form onSubmit={handleEditSubmit} className="space-y-4 pt-2">
+              <EmployeeFormFields data={editingItem} setData={setEditingItem} />
+              <div className="flex justify-end gap-2 pt-2">
+                <Button type="button" variant="outline" onClick={() => setEditingItem(null)}>Cancelar</Button>
+                <Button type="submit" disabled={updateMutation.isPending}>{updateMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}Salvar</Button>
+              </div>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard icon={Users} title="Total de Funcionários" value={String(items.length)} change={`${new Set(items.map(f => f.setor).filter(Boolean)).size} setores`} changeType="neutral" delay={0} />
@@ -195,35 +190,16 @@ export default function Funcionarios() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={`text-xs font-medium px-2 py-1 rounded-full capitalize ${statusColor[f.status || "ativo"] || statusColor.ativo}`}>
-                    {f.status || "ativo"}
-                  </span>
-                  <button onClick={() => deleteMutation.mutate(f.id)} className="text-muted-foreground hover:text-destructive">
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  <span className={`text-xs font-medium px-2 py-1 rounded-full capitalize ${statusColor[f.status || "ativo"] || statusColor.ativo}`}>{f.status || "ativo"}</span>
+                  <button onClick={() => openEdit(f)} className="text-muted-foreground hover:text-primary"><Pencil className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => deleteMutation.mutate(f.id)} className="text-muted-foreground hover:text-destructive"><Trash2 className="w-3.5 h-3.5" /></button>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3 mt-4 text-xs">
-                {f.setor && (
-                  <div className="flex items-center gap-1.5 text-muted-foreground">
-                    <Briefcase className="w-3.5 h-3.5" /> {f.setor}
-                  </div>
-                )}
-                {f.data_admissao && (
-                  <div className="flex items-center gap-1.5 text-muted-foreground">
-                    <Calendar className="w-3.5 h-3.5" /> {new Date(f.data_admissao).toLocaleDateString("pt-BR")}
-                  </div>
-                )}
-                {f.telefone && (
-                  <div className="flex items-center gap-1.5 text-muted-foreground">
-                    <Phone className="w-3.5 h-3.5" /> {f.telefone}
-                  </div>
-                )}
-                {f.produtividade_percentual != null && (
-                  <div className="flex items-center gap-1.5 text-muted-foreground">
-                    <Star className="w-3.5 h-3.5" /> {f.produtividade_percentual}% prod.
-                  </div>
-                )}
+                {f.setor && <div className="flex items-center gap-1.5 text-muted-foreground"><Briefcase className="w-3.5 h-3.5" /> {f.setor}</div>}
+                {f.data_admissao && <div className="flex items-center gap-1.5 text-muted-foreground"><Calendar className="w-3.5 h-3.5" /> {new Date(f.data_admissao).toLocaleDateString("pt-BR")}</div>}
+                {f.telefone && <div className="flex items-center gap-1.5 text-muted-foreground"><Phone className="w-3.5 h-3.5" /> {f.telefone}</div>}
+                {f.produtividade_percentual != null && <div className="flex items-center gap-1.5 text-muted-foreground"><Star className="w-3.5 h-3.5" /> {f.produtividade_percentual}% prod.</div>}
               </div>
             </motion.div>
           ))}
