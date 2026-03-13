@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Truck, Wrench, Fuel, Clock, MapPin, Plus, CheckCircle, XCircle, Loader2, Trash2 } from "lucide-react";
+import { Truck, Wrench, Fuel, Clock, Plus, CheckCircle, XCircle, Loader2, Trash2, Pencil } from "lucide-react";
 import MetricCard from "@/components/MetricCard";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,85 +13,118 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const tipos = ["Trator", "Colheitadeira", "Pulverizador", "Implemento", "Drone", "Caminhão", "Outro"];
-const statusOptions = ["operando", "parada", "manutencao"];
-
 const statusIcon: Record<string, { icon: React.ElementType; color: string; bg: string; label: string }> = {
   operando: { icon: CheckCircle, color: "text-success", bg: "bg-success/10", label: "Operando" },
   parada: { icon: XCircle, color: "text-muted-foreground", bg: "bg-muted", label: "Parada" },
   manutencao: { icon: Wrench, color: "text-warning", bg: "bg-warning/10", label: "Manutenção" },
 };
+const emptyForm = { fazenda_id: "", nome: "", tipo: "", modelo: "", ano: "", status: "parada", horas_uso: "", combustivel_percentual: "", proxima_manutencao: "" };
 
 export default function Maquinas() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { userData, fazendas } = useUserFazendas();
   const [isAddOpen, setIsAddOpen] = useState(false);
-  const [form, setForm] = useState({
-    fazenda_id: "", nome: "", tipo: "", modelo: "", ano: "", status: "parada",
-    horas_uso: "", combustivel_percentual: "", proxima_manutencao: "",
-  });
+  const [editingItem, setEditingItem] = useState<any>(null);
+  const [form, setForm] = useState(emptyForm);
 
   const { data: maquinas, isLoading } = useQuery({
-    queryKey: ["maquinas-real"],
-    enabled: !!userData,
+    queryKey: ["maquinas-real"], enabled: !!userData,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("maquinas")
-        .select("*, fazendas!inner(user_id, nome)")
-        .eq("fazendas.user_id", userData!.id)
-        .order("nome");
-      if (error) throw error;
-      return data;
+      const { data, error } = await supabase.from("maquinas").select("*, fazendas!inner(user_id, nome)").eq("fazendas.user_id", userData!.id).order("nome");
+      if (error) throw error; return data;
     },
   });
 
   const addMutation = useMutation({
     mutationFn: async (f: typeof form) => {
       const { error } = await supabase.from("maquinas").insert([{
-        fazenda_id: f.fazenda_id,
-        nome: f.nome.trim(),
-        tipo: f.tipo || null,
-        modelo: f.modelo || null,
-        ano: f.ano ? Number(f.ano) : null,
-        status: f.status,
-        horas_uso: f.horas_uso ? Number(f.horas_uso) : 0,
-        combustivel_percentual: f.combustivel_percentual ? Number(f.combustivel_percentual) : null,
-        proxima_manutencao: f.proxima_manutencao || null,
+        fazenda_id: f.fazenda_id, nome: f.nome.trim(), tipo: f.tipo || null, modelo: f.modelo || null,
+        ano: f.ano ? Number(f.ano) : null, status: f.status, horas_uso: f.horas_uso ? Number(f.horas_uso) : 0,
+        combustivel_percentual: f.combustivel_percentual ? Number(f.combustivel_percentual) : null, proxima_manutencao: f.proxima_manutencao || null,
       }]);
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["maquinas-real"] });
-      toast({ title: "Máquina cadastrada" });
-      setIsAddOpen(false);
-      setForm({ fazenda_id: "", nome: "", tipo: "", modelo: "", ano: "", status: "parada", horas_uso: "", combustivel_percentual: "", proxima_manutencao: "" });
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["maquinas-real"] }); toast({ title: "Máquina cadastrada" }); setIsAddOpen(false); setForm(emptyForm); },
+    onError: (e) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async (item: any) => {
+      const { error } = await supabase.from("maquinas").update({
+        nome: item.nome.trim(), tipo: item.tipo || null, modelo: item.modelo || null,
+        ano: item.ano ? Number(item.ano) : null, status: item.status, horas_uso: item.horas_uso ? Number(item.horas_uso) : 0,
+        combustivel_percentual: item.combustivel_percentual ? Number(item.combustivel_percentual) : null, proxima_manutencao: item.proxima_manutencao || null,
+      }).eq("id", item.id);
+      if (error) throw error;
     },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["maquinas-real"] }); toast({ title: "Máquina atualizada" }); setEditingItem(null); },
     onError: (e) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("maquinas").delete().eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["maquinas-real"] });
-      toast({ title: "Máquina removida" });
-    },
+    mutationFn: async (id: string) => { const { error } = await supabase.from("maquinas").delete().eq("id", id); if (error) throw error; },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["maquinas-real"] }); toast({ title: "Máquina removida" }); },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.fazenda_id || !form.nome) {
-      toast({ title: "Preencha os campos obrigatórios", variant: "destructive" });
-      return;
-    }
+    if (!form.fazenda_id || !form.nome) { toast({ title: "Preencha os campos obrigatórios", variant: "destructive" }); return; }
     addMutation.mutate(form);
+  };
+  const handleEditSubmit = (e: React.FormEvent) => { e.preventDefault(); updateMutation.mutate(editingItem); };
+  const openEdit = (m: any) => {
+    setEditingItem({
+      id: m.id, nome: m.nome, tipo: m.tipo || "", modelo: m.modelo || "", ano: m.ano ? String(m.ano) : "",
+      status: m.status || "parada", horas_uso: String(m.horas_uso || 0),
+      combustivel_percentual: m.combustivel_percentual != null ? String(m.combustivel_percentual) : "", proxima_manutencao: m.proxima_manutencao || "",
+    });
   };
 
   const items = maquinas || [];
   const operando = items.filter(m => m.status === "operando").length;
   const emManutencao = items.filter(m => m.status === "manutencao").length;
+
+  const MachineFormFields = ({ data, setData, showFazenda = false }: { data: any; setData: (d: any) => void; showFazenda?: boolean }) => (
+    <>
+      {showFazenda && (
+        <div className="space-y-2">
+          <Label>Fazenda *</Label>
+          <Select value={data.fazenda_id} onValueChange={v => setData({ ...data, fazenda_id: v })}>
+            <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+            <SelectContent>{fazendas.map(f => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
+      )}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2"><Label>Nome *</Label><Input value={data.nome} onChange={e => setData({ ...data, nome: e.target.value })} placeholder="Ex: Trator John Deere" /></div>
+        <div className="space-y-2">
+          <Label>Tipo</Label>
+          <Select value={data.tipo} onValueChange={v => setData({ ...data, tipo: v })}>
+            <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+            <SelectContent>{tipos.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
+      </div>
+      <div className="grid grid-cols-3 gap-4">
+        <div className="space-y-2"><Label>Modelo</Label><Input value={data.modelo} onChange={e => setData({ ...data, modelo: e.target.value })} placeholder="8R 410" /></div>
+        <div className="space-y-2"><Label>Ano</Label><Input type="number" value={data.ano} onChange={e => setData({ ...data, ano: e.target.value })} placeholder="2024" /></div>
+        <div className="space-y-2"><Label>Horas de Uso</Label><Input type="number" value={data.horas_uso} onChange={e => setData({ ...data, horas_uso: e.target.value })} placeholder="0" /></div>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label>Status</Label>
+          <Select value={data.status} onValueChange={v => setData({ ...data, status: v })}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="parada">Parada</SelectItem><SelectItem value="operando">Operando</SelectItem><SelectItem value="manutencao">Manutenção</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2"><Label>Combustível (%)</Label><Input type="number" min="0" max="100" value={data.combustivel_percentual} onChange={e => setData({ ...data, combustivel_percentual: e.target.value })} /></div>
+      </div>
+    </>
+  );
 
   return (
     <div className="space-y-6">
@@ -109,67 +142,30 @@ export default function Maquinas() {
           <DialogContent>
             <DialogHeader><DialogTitle>Cadastrar Máquina</DialogTitle></DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-              <div className="space-y-2">
-                <Label>Fazenda *</Label>
-                <Select value={form.fazenda_id} onValueChange={v => setForm({ ...form, fazenda_id: v })}>
-                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                  <SelectContent>{fazendas.map(f => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Nome *</Label>
-                  <Input value={form.nome} onChange={e => setForm({ ...form, nome: e.target.value })} placeholder="Ex: Trator John Deere" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Tipo</Label>
-                  <Select value={form.tipo} onValueChange={v => setForm({ ...form, tipo: v })}>
-                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                    <SelectContent>{tipos.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label>Modelo</Label>
-                  <Input value={form.modelo} onChange={e => setForm({ ...form, modelo: e.target.value })} placeholder="8R 410" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Ano</Label>
-                  <Input type="number" value={form.ano} onChange={e => setForm({ ...form, ano: e.target.value })} placeholder="2024" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Horas de Uso</Label>
-                  <Input type="number" value={form.horas_uso} onChange={e => setForm({ ...form, horas_uso: e.target.value })} placeholder="0" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Status</Label>
-                  <Select value={form.status} onValueChange={v => setForm({ ...form, status: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="parada">Parada</SelectItem>
-                      <SelectItem value="operando">Operando</SelectItem>
-                      <SelectItem value="manutencao">Manutenção</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Combustível (%)</Label>
-                  <Input type="number" min="0" max="100" value={form.combustivel_percentual} onChange={e => setForm({ ...form, combustivel_percentual: e.target.value })} />
-                </div>
-              </div>
+              <MachineFormFields data={form} setData={setForm} showFazenda />
               <div className="flex justify-end gap-2 pt-2">
                 <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)}>Cancelar</Button>
-                <Button type="submit" disabled={addMutation.isPending}>
-                  {addMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}Cadastrar
-                </Button>
+                <Button type="submit" disabled={addMutation.isPending}>{addMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}Cadastrar</Button>
               </div>
             </form>
           </DialogContent>
         </Dialog>
       </div>
+
+      <Dialog open={!!editingItem} onOpenChange={(o) => !o && setEditingItem(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Editar Máquina</DialogTitle></DialogHeader>
+          {editingItem && (
+            <form onSubmit={handleEditSubmit} className="space-y-4 pt-2">
+              <MachineFormFields data={editingItem} setData={setEditingItem} />
+              <div className="flex justify-end gap-2 pt-2">
+                <Button type="button" variant="outline" onClick={() => setEditingItem(null)}>Cancelar</Button>
+                <Button type="submit" disabled={updateMutation.isPending}>{updateMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}Salvar</Button>
+              </div>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard icon={Truck} title="Total de Máquinas" value={String(items.length)} change={`${new Set(items.map(m => m.tipo)).size} tipos`} changeType="neutral" delay={0} />
@@ -201,21 +197,13 @@ export default function Maquinas() {
                     <div className={`flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full ${st.bg} ${st.color}`}>
                       <st.icon className="w-3 h-3" /> {st.label}
                     </div>
-                    <button onClick={() => deleteMutation.mutate(m.id)} className="text-muted-foreground hover:text-destructive">
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    <button onClick={() => openEdit(m)} className="text-muted-foreground hover:text-primary"><Pencil className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => deleteMutation.mutate(m.id)} className="text-muted-foreground hover:text-destructive"><Trash2 className="w-3.5 h-3.5" /></button>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3 mt-4">
-                  <div className="flex items-center gap-2 text-xs">
-                    <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-                    <span className="text-muted-foreground">{(m.horas_uso || 0).toLocaleString()}h</span>
-                  </div>
-                  {m.ano && (
-                    <div className="flex items-center gap-2 text-xs">
-                      <span className="text-muted-foreground">Ano: {m.ano}</span>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2 text-xs"><Clock className="w-3.5 h-3.5 text-muted-foreground" /><span className="text-muted-foreground">{(m.horas_uso || 0).toLocaleString()}h</span></div>
+                  {m.ano && <div className="flex items-center gap-2 text-xs"><span className="text-muted-foreground">Ano: {m.ano}</span></div>}
                   {m.combustivel_percentual != null && (
                     <div className="flex items-center gap-2 text-xs col-span-2">
                       <Fuel className="w-3.5 h-3.5 text-muted-foreground" />
@@ -229,8 +217,7 @@ export default function Maquinas() {
                   )}
                   {m.proxima_manutencao && (
                     <div className="flex items-center gap-2 text-xs col-span-2">
-                      <Wrench className="w-3.5 h-3.5 text-muted-foreground" />
-                      <span className="text-muted-foreground">Próx. manutenção: {m.proxima_manutencao}</span>
+                      <Wrench className="w-3.5 h-3.5 text-muted-foreground" /><span className="text-muted-foreground">Próx. manutenção: {m.proxima_manutencao}</span>
                     </div>
                   )}
                 </div>

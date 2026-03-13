@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Package, AlertTriangle, Plus, Search, ArrowDown, ArrowUp, Loader2, Trash2 } from "lucide-react";
+import { Package, AlertTriangle, Plus, Search, Loader2, Trash2, Pencil } from "lucide-react";
 import MetricCard from "@/components/MetricCard";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,27 +13,22 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const categorias = ["Sementes", "Fertilizantes", "Defensivos", "Combustível", "Peças", "Outros"];
+const emptyForm = { fazenda_id: "", nome: "", categoria: "", quantidade: "", unidade: "kg", quantidade_minima: "", valor_unitario: "" };
 
 export default function Estoque() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { userData, fazendas } = useUserFazendas();
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<any>(null);
   const [search, setSearch] = useState("");
-  const [form, setForm] = useState({
-    fazenda_id: "", nome: "", categoria: "", quantidade: "", unidade: "kg",
-    quantidade_minima: "", valor_unitario: "",
-  });
+  const [form, setForm] = useState(emptyForm);
 
   const { data: estoque, isLoading } = useQuery({
     queryKey: ["estoque-real"],
     enabled: !!userData,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("estoque")
-        .select("*, fazendas!inner(user_id, nome)")
-        .eq("fazendas.user_id", userData!.id)
-        .order("nome");
+      const { data, error } = await supabase.from("estoque").select("*, fazendas!inner(user_id, nome)").eq("fazendas.user_id", userData!.id).order("nome");
       if (error) throw error;
       return data;
     },
@@ -42,44 +37,54 @@ export default function Estoque() {
   const addMutation = useMutation({
     mutationFn: async (f: typeof form) => {
       const { error } = await supabase.from("estoque").insert([{
-        fazenda_id: f.fazenda_id,
-        nome: f.nome.trim(),
-        categoria: f.categoria || null,
-        quantidade: Number(f.quantidade),
-        unidade: f.unidade,
+        fazenda_id: f.fazenda_id, nome: f.nome.trim(), categoria: f.categoria || null,
+        quantidade: Number(f.quantidade), unidade: f.unidade,
         quantidade_minima: f.quantidade_minima ? Number(f.quantidade_minima) : null,
         valor_unitario: f.valor_unitario ? Number(f.valor_unitario) : null,
         data_entrada: new Date().toISOString().split("T")[0],
       }]);
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["estoque-real"] });
-      toast({ title: "Item adicionado ao estoque" });
-      setIsAddOpen(false);
-      setForm({ fazenda_id: "", nome: "", categoria: "", quantidade: "", unidade: "kg", quantidade_minima: "", valor_unitario: "" });
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["estoque-real"] }); toast({ title: "Item adicionado ao estoque" }); setIsAddOpen(false); setForm(emptyForm); },
+    onError: (e) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async (item: any) => {
+      const { error } = await supabase.from("estoque").update({
+        nome: item.nome.trim(), categoria: item.categoria || null,
+        quantidade: Number(item.quantidade), unidade: item.unidade,
+        quantidade_minima: item.quantidade_minima ? Number(item.quantidade_minima) : null,
+        valor_unitario: item.valor_unitario ? Number(item.valor_unitario) : null,
+      }).eq("id", item.id);
+      if (error) throw error;
     },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["estoque-real"] }); toast({ title: "Item atualizado" }); setEditingItem(null); },
     onError: (e) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("estoque").delete().eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["estoque-real"] });
-      toast({ title: "Item removido" });
-    },
+    mutationFn: async (id: string) => { const { error } = await supabase.from("estoque").delete().eq("id", id); if (error) throw error; },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["estoque-real"] }); toast({ title: "Item removido" }); },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.fazenda_id || !form.nome || !form.quantidade) {
-      toast({ title: "Preencha os campos obrigatórios", variant: "destructive" });
-      return;
-    }
+    if (!form.fazenda_id || !form.nome || !form.quantidade) { toast({ title: "Preencha os campos obrigatórios", variant: "destructive" }); return; }
     addMutation.mutate(form);
+  };
+
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateMutation.mutate(editingItem);
+  };
+
+  const openEdit = (item: any) => {
+    setEditingItem({
+      id: item.id, nome: item.nome, categoria: item.categoria || "", quantidade: String(item.quantidade),
+      unidade: item.unidade, quantidade_minima: item.quantidade_minima ? String(item.quantidade_minima) : "",
+      valor_unitario: item.valor_unitario ? String(item.valor_unitario) : "",
+    });
   };
 
   const items = estoque || [];
@@ -93,6 +98,45 @@ export default function Estoque() {
     if (item.quantidade <= item.quantidade_minima) return "baixo";
     return "normal";
   };
+
+  const ItemFormFields = ({ data, setData }: { data: any; setData: (d: any) => void }) => (
+    <>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label>Nome do Item *</Label>
+          <Input value={data.nome} onChange={e => setData({ ...data, nome: e.target.value })} placeholder="Ex: Semente Soja" />
+        </div>
+        <div className="space-y-2">
+          <Label>Categoria</Label>
+          <Select value={data.categoria} onValueChange={v => setData({ ...data, categoria: v })}>
+            <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+            <SelectContent>{categorias.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
+      </div>
+      <div className="grid grid-cols-3 gap-4">
+        <div className="space-y-2">
+          <Label>Quantidade *</Label>
+          <Input type="number" min="0" value={data.quantidade} onChange={e => setData({ ...data, quantidade: e.target.value })} />
+        </div>
+        <div className="space-y-2">
+          <Label>Unidade</Label>
+          <Select value={data.unidade} onValueChange={v => setData({ ...data, unidade: v })}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>{["kg", "L", "un", "ton", "sc"].map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label>Qtd. Mínima</Label>
+          <Input type="number" min="0" value={data.quantidade_minima} onChange={e => setData({ ...data, quantidade_minima: e.target.value })} />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label>Valor Unitário (R$)</Label>
+        <Input type="number" min="0" step="0.01" value={data.valor_unitario} onChange={e => setData({ ...data, valor_unitario: e.target.value })} />
+      </div>
+    </>
+  );
 
   return (
     <div className="space-y-6">
@@ -117,42 +161,7 @@ export default function Estoque() {
                   <SelectContent>{fazendas.map(f => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Nome do Item *</Label>
-                  <Input value={form.nome} onChange={e => setForm({ ...form, nome: e.target.value })} placeholder="Ex: Semente Soja" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Categoria</Label>
-                  <Select value={form.categoria} onValueChange={v => setForm({ ...form, categoria: v })}>
-                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                    <SelectContent>{categorias.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label>Quantidade *</Label>
-                  <Input type="number" min="0" value={form.quantidade} onChange={e => setForm({ ...form, quantidade: e.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Unidade</Label>
-                  <Select value={form.unidade} onValueChange={v => setForm({ ...form, unidade: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {["kg", "L", "un", "ton", "sc"].map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Qtd. Mínima</Label>
-                  <Input type="number" min="0" value={form.quantidade_minima} onChange={e => setForm({ ...form, quantidade_minima: e.target.value })} />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Valor Unitário (R$)</Label>
-                <Input type="number" min="0" step="0.01" value={form.valor_unitario} onChange={e => setForm({ ...form, valor_unitario: e.target.value })} />
-              </div>
+              <ItemFormFields data={form} setData={setForm} />
               <div className="flex justify-end gap-2 pt-2">
                 <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)}>Cancelar</Button>
                 <Button type="submit" disabled={addMutation.isPending}>
@@ -163,6 +172,24 @@ export default function Estoque() {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Edit Dialog */}
+      <Dialog open={!!editingItem} onOpenChange={(o) => !o && setEditingItem(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Editar Item</DialogTitle></DialogHeader>
+          {editingItem && (
+            <form onSubmit={handleEditSubmit} className="space-y-4 pt-2">
+              <ItemFormFields data={editingItem} setData={setEditingItem} />
+              <div className="flex justify-end gap-2 pt-2">
+                <Button type="button" variant="outline" onClick={() => setEditingItem(null)}>Cancelar</Button>
+                <Button type="submit" disabled={updateMutation.isPending}>
+                  {updateMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}Salvar
+                </Button>
+              </div>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard icon={Package} title="Total de Itens" value={String(items.length)} change={`${new Set(items.map(i => i.categoria)).size} categorias`} changeType="neutral" delay={0} />
@@ -214,17 +241,14 @@ export default function Estoque() {
                       </td>
                       <td className="py-3 px-4 text-center">
                         <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                          status === "normal" ? "bg-success/10 text-success" :
-                          status === "baixo" ? "bg-warning/10 text-warning" :
-                          "bg-destructive/10 text-destructive"
-                        }`}>
-                          {status === "normal" ? "Normal" : status === "baixo" ? "Baixo" : "Crítico"}
-                        </span>
+                          status === "normal" ? "bg-success/10 text-success" : status === "baixo" ? "bg-warning/10 text-warning" : "bg-destructive/10 text-destructive"
+                        }`}>{status === "normal" ? "Normal" : status === "baixo" ? "Baixo" : "Crítico"}</span>
                       </td>
                       <td className="py-3 px-4 text-center">
-                        <button onClick={() => deleteMutation.mutate(item.id)} className="text-muted-foreground hover:text-destructive transition-colors">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center justify-center gap-2">
+                          <button onClick={() => openEdit(item)} className="text-muted-foreground hover:text-primary transition-colors"><Pencil className="w-4 h-4" /></button>
+                          <button onClick={() => deleteMutation.mutate(item.id)} className="text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="w-4 h-4" /></button>
+                        </div>
                       </td>
                     </tr>
                   );
