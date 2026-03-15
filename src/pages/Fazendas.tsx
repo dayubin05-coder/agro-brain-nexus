@@ -26,6 +26,7 @@ export default function Fazendas() {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingFarm, setEditingFarm] = useState<any>(null);
   const [newFarm, setNewFarm] = useState(emptyForm);
+  const [talhoesOpen, setTalhoesOpen] = useState<{ id: string; nome: string } | null>(null);
 
   const { data: fazendas, isLoading } = useQuery({
     queryKey: ["fazendas"],
