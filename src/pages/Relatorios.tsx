@@ -31,21 +31,16 @@ export default function Relatorios() {
     queryKey: ["report", selectedType, farmId],
     enabled: !!farmId,
     queryFn: async (): Promise<any[]> => {
-      const tableMap: Record<string, string> = {
-        pragas: "pragas_ocorrencias",
-        funcionarios: "funcionarios",
-        financeiro: "transacoes_financeiras",
-        plantio: "plantios",
-        estoque: "estoque",
+      const fetchTable = async (table: string) => {
+        const { data, error } = await (supabase as any).from(table).select("*").eq("fazenda_id", farmId).order("created_at", { ascending: false });
+        if (error) throw error;
+        return data || [];
       };
-      const tableName = tableMap[selectedType] || "estoque";
-      const { data, error } = await supabase
-        .from(tableName as any)
-        .select("*")
-        .eq("fazenda_id" as any, farmId)
-        .order("created_at" as any, { ascending: false });
-      if (error) throw error;
-      return (data as any[]) || [];
+      const tableMap: Record<string, string> = {
+        pragas: "pragas_ocorrencias", funcionarios: "funcionarios",
+        financeiro: "transacoes_financeiras", plantio: "plantios", estoque: "estoque",
+      };
+      return fetchTable(tableMap[selectedType] || "estoque");
     },
   });
 
