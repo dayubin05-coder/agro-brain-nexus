@@ -268,6 +268,15 @@ export default function Fazendas() {
           </TabsContent>
         </Tabs>
       )}
+
+      {talhoesOpen && (
+        <TalhoesManager
+          farmId={talhoesOpen.id}
+          farmName={talhoesOpen.nome}
+          open={!!talhoesOpen}
+          onOpenChange={(o) => !o && setTalhoesOpen(null)}
+        />
+      )}
     </div>
   );
 }
