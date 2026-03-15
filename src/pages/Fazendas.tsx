@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import TalhoesManager from "@/components/TalhoesManager";
 
 const emptyForm = { nome: "", cidade: "", estado: "", area_total: "" };
 
