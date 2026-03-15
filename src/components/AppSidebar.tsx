@@ -18,6 +18,8 @@ import {
   Leaf,
   LogOut,
   Recycle,
+  FileText,
+  UserCircle,
 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -36,6 +38,8 @@ const navItems = [
   { icon: ShoppingCart, label: "Marketplace", path: "/marketplace" },
   { icon: Bot, label: "IA Agrícola", path: "/ia" },
   { icon: Recycle, label: "Sustentabilidade", path: "/sustentabilidade" },
+  { icon: FileText, label: "Relatórios", path: "/relatorios" },
+  { icon: UserCircle, label: "Meu Perfil", path: "/perfil" },
 ];
 
 interface AppSidebarProps {

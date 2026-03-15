@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Plus, MoreVertical, Sprout, Ruler, Calendar, Loader2, Pencil, Trash2 } from "lucide-react";
+import { MapPin, Plus, MoreVertical, Sprout, Ruler, Calendar, Loader2, Pencil, Trash2, Layers } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import TalhoesManager from "@/components/TalhoesManager";
 
 const emptyForm = { nome: "", cidade: "", estado: "", area_total: "" };
 
@@ -25,6 +26,7 @@ export default function Fazendas() {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingFarm, setEditingFarm] = useState<any>(null);
   const [newFarm, setNewFarm] = useState(emptyForm);
+  const [talhoesOpen, setTalhoesOpen] = useState<{ id: string; nome: string } | null>(null);
 
   const { data: fazendas, isLoading } = useQuery({
     queryKey: ["fazendas"],
@@ -223,6 +225,9 @@ export default function Fazendas() {
                             <DropdownMenuItem onClick={() => openEdit(farm)}>
                               <Pencil className="w-3.5 h-3.5 mr-2" /> Editar
                             </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setTalhoesOpen({ id: farm.id, nome: farm.nome })}>
+                              <Layers className="w-3.5 h-3.5 mr-2" /> Talhões
+                            </DropdownMenuItem>
                             <DropdownMenuItem className="text-destructive" onClick={() => deleteFarmMutation.mutate(farm.id)}>
                               <Trash2 className="w-3.5 h-3.5 mr-2" /> Excluir
                             </DropdownMenuItem>
@@ -262,6 +267,15 @@ export default function Fazendas() {
             <FarmMap fazendas={fazendas} />
           </TabsContent>
         </Tabs>
+      )}
+
+      {talhoesOpen && (
+        <TalhoesManager
+          farmId={talhoesOpen.id}
+          farmName={talhoesOpen.nome}
+          open={!!talhoesOpen}
+          onOpenChange={(o) => !o && setTalhoesOpen(null)}
+        />
       )}
     </div>
   );
