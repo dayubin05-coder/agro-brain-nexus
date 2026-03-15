@@ -31,16 +31,16 @@ export default function Relatorios() {
     queryKey: ["report", selectedType, farmId],
     enabled: !!farmId,
     queryFn: async () => {
-      const table = selectedType === "pragas" ? "pragas_ocorrencias"
-        : selectedType === "funcionarios" ? "funcionarios"
-        : selectedType === "financeiro" ? "transacoes_financeiras"
-        : selectedType === "plantio" ? "plantios"
-        : "estoque";
-      const { data, error } = await supabase
-        .from(table)
-        .select("*")
-        .eq("fazenda_id", farmId)
-        .order("created_at", { ascending: false });
+      let data: any[] | null = null;
+      let error: any = null;
+      const query = (t: "pragas_ocorrencias" | "funcionarios" | "transacoes_financeiras" | "plantios" | "estoque") =>
+        supabase.from(t).select("*").eq("fazenda_id", farmId).order("created_at", { ascending: false });
+
+      if (selectedType === "pragas") ({ data, error } = await query("pragas_ocorrencias"));
+      else if (selectedType === "funcionarios") ({ data, error } = await query("funcionarios"));
+      else if (selectedType === "financeiro") ({ data, error } = await query("transacoes_financeiras"));
+      else if (selectedType === "plantio") ({ data, error } = await query("plantios"));
+      else ({ data, error } = await query("estoque"));
       if (error) throw error;
       return data;
     },
