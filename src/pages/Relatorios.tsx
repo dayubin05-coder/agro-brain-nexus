@@ -30,19 +30,22 @@ export default function Relatorios() {
   const { data: reportData, isLoading } = useQuery({
     queryKey: ["report", selectedType, farmId],
     enabled: !!farmId,
-    queryFn: async () => {
-      let data: any[] | null = null;
-      let error: any = null;
-      const query = (t: "pragas_ocorrencias" | "funcionarios" | "transacoes_financeiras" | "plantios" | "estoque") =>
-        supabase.from(t).select("*").eq("fazenda_id", farmId).order("created_at", { ascending: false });
-
-      if (selectedType === "pragas") ({ data, error } = await query("pragas_ocorrencias"));
-      else if (selectedType === "funcionarios") ({ data, error } = await query("funcionarios"));
-      else if (selectedType === "financeiro") ({ data, error } = await query("transacoes_financeiras"));
-      else if (selectedType === "plantio") ({ data, error } = await query("plantios"));
-      else ({ data, error } = await query("estoque"));
+    queryFn: async (): Promise<any[]> => {
+      const tableMap: Record<string, string> = {
+        pragas: "pragas_ocorrencias",
+        funcionarios: "funcionarios",
+        financeiro: "transacoes_financeiras",
+        plantio: "plantios",
+        estoque: "estoque",
+      };
+      const tableName = tableMap[selectedType] || "estoque";
+      const { data, error } = await supabase
+        .from(tableName as any)
+        .select("*")
+        .eq("fazenda_id" as any, farmId)
+        .order("created_at" as any, { ascending: false });
       if (error) throw error;
-      return data;
+      return (data as any[]) || [];
     },
   });
 
