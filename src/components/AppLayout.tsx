@@ -2,10 +2,12 @@ import { useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import AppSidebar from "./AppSidebar";
 import ThemeToggle from "./ThemeToggle";
+import NotificationsPanel from "./NotificationsPanel";
 import { Bell, Search, User, LogOut, Settings, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useQuery } from "@tanstack/react-query";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,14 +19,29 @@ import {
 import {
   Sheet,
   SheetContent,
-  SheetTrigger,
 } from "@/components/ui/sheet";
 
 export default function AppLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+
+  const { data: notifCount = 0 } = useQuery({
+    queryKey: ["notifications"],
+    select: (data: any[]) => data?.length || 0,
+  });
+
+  const { data: profile } = useQuery({
+    queryKey: ["profile"],
+    queryFn: async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) return null;
+      const { data } = await supabase.from("profiles").select("nome, tipo").eq("id", userData.user.id).single();
+      return data;
+    },
+  });
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -33,12 +50,10 @@ export default function AppLayout() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Desktop sidebar */}
       {!isMobile && (
         <AppSidebar collapsed={collapsed} setCollapsed={setCollapsed} />
       )}
 
-      {/* Mobile sidebar via Sheet */}
       {isMobile && (
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetContent side="left" className="p-0 w-[260px] bg-sidebar border-sidebar-border">
@@ -57,9 +72,7 @@ export default function AppLayout() {
           isMobile ? "ml-0" : collapsed ? "ml-[72px]" : "ml-[260px]"
         )}
       >
-        {/* Top bar */}
         <header className="sticky top-0 z-40 h-14 md:h-16 bg-card/80 backdrop-blur-md border-b border-border flex items-center justify-between px-3 md:px-6 shadow-sm gap-2">
-          {/* Mobile hamburger */}
           {isMobile && (
             <button
               onClick={() => setMobileOpen(true)}
@@ -83,10 +96,20 @@ export default function AppLayout() {
           <div className="flex items-center gap-1 md:gap-3">
             <ThemeToggle />
 
-            <button className="relative p-2 rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-destructive border-2 border-card" />
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setNotifOpen(!notifOpen)}
+                className="relative p-2 rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+              >
+                <Bell className="w-5 h-5" />
+                {notifCount > 0 && (
+                  <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
+                    {notifCount > 9 ? "9+" : notifCount}
+                  </span>
+                )}
+              </button>
+              <NotificationsPanel open={notifOpen} onClose={() => setNotifOpen(false)} />
+            </div>
 
             <div className="h-6 w-px bg-border hidden md:block" />
 
@@ -97,17 +120,17 @@ export default function AppLayout() {
                     <User className="w-4 h-4" />
                   </div>
                   <div className="hidden md:block text-left">
-                    <p className="text-sm font-medium text-foreground leading-none">Produtor</p>
-                    <p className="text-xs text-muted-foreground mt-1">Fazenda Demo</p>
+                    <p className="text-sm font-medium text-foreground leading-none">{profile?.nome || "Usuário"}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{profile?.tipo || "produtor"}</p>
                   </div>
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer">
+                <DropdownMenuItem className="cursor-pointer" onClick={() => navigate("/perfil")}>
                   <Settings className="w-4 h-4 mr-2" />
-                  Configurações
+                  Meu Perfil
                 </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={handleLogout}>
                   <LogOut className="w-4 h-4 mr-2" />
@@ -118,7 +141,6 @@ export default function AppLayout() {
           </div>
         </header>
 
-        {/* Page content */}
         <main className="flex-1 p-4 md:p-6 lg:p-8 max-w-7xl mx-auto w-full">
           <Outlet />
         </main>
