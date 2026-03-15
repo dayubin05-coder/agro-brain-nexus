@@ -225,6 +225,9 @@ export default function Fazendas() {
                             <DropdownMenuItem onClick={() => openEdit(farm)}>
                               <Pencil className="w-3.5 h-3.5 mr-2" /> Editar
                             </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setTalhoesOpen({ id: farm.id, nome: farm.nome })}>
+                              <Layers className="w-3.5 h-3.5 mr-2" /> Talhões
+                            </DropdownMenuItem>
                             <DropdownMenuItem className="text-destructive" onClick={() => deleteFarmMutation.mutate(farm.id)}>
                               <Trash2 className="w-3.5 h-3.5 mr-2" /> Excluir
                             </DropdownMenuItem>
