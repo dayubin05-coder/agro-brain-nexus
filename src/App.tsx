@@ -18,6 +18,8 @@ import Mercado from "./pages/Mercado";
 import Marketplace from "./pages/Marketplace";
 import IAAgricola from "./pages/IAAgricola";
 import Sustentabilidade from "./pages/Sustentabilidade";
+import Perfil from "./pages/Perfil";
+import Relatorios from "./pages/Relatorios";
 import NotFound from "./pages/NotFound";
 import AuthGuard from "./components/AuthGuard";
 import Login from "./pages/Login";
@@ -52,6 +54,8 @@ const App = () => (
                 <Route path="/marketplace" element={<Marketplace />} />
                 <Route path="/ia" element={<IAAgricola />} />
                 <Route path="/sustentabilidade" element={<Sustentabilidade />} />
+                <Route path="/perfil" element={<Perfil />} />
+                <Route path="/relatorios" element={<Relatorios />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
