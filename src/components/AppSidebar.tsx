@@ -16,13 +16,10 @@ import {
   ChevronLeft,
   ChevronRight,
   Leaf,
-  LogOut,
   Recycle,
   FileText,
   UserCircle,
 } from "lucide-react";
-
-import { supabase } from "@/integrations/supabase/client";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
@@ -120,20 +117,8 @@ export default function AppSidebar({ collapsed, setCollapsed, onNavigate }: AppS
         })}
       </nav>
 
-      {/* Collapse toggle and Logout */}
-      <div className="p-2 border-t border-sidebar-border flex flex-col gap-2">
-        <button
-          onClick={async () => {
-            await supabase.auth.signOut();
-            navigate("/login");
-          }}
-          className="w-full flex items-center justify-center py-2 rounded-lg text-sidebar-foreground/50 hover:text-destructive hover:bg-sidebar-accent/50 transition-colors group"
-          title="Sair"
-        >
-          <LogOut className="w-4 h-4" />
-          {!collapsed && <span className="ml-3 text-sm">Sair</span>}
-        </button>
-
+      {/* Collapse toggle */}
+      <div className="p-2 border-t border-sidebar-border">
         <button
           onClick={() => setCollapsed(!collapsed)}
           className="w-full flex items-center justify-center py-2 rounded-lg text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors"
