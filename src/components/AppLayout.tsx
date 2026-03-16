@@ -38,10 +38,14 @@ export default function AppLayout() {
     queryFn: async () => {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) return null;
-      const { data } = await supabase.from("profiles").select("nome, tipo").eq("id", userData.user.id).single();
+      const { data } = await supabase.from("profiles").select("nome, tipo, avatar_url").eq("id", userData.user.id).single();
       return data;
     },
   });
+
+  const avatarUrl = profile?.avatar_url
+    ? supabase.storage.from("avatars").getPublicUrl(profile.avatar_url).data.publicUrl
+    : null;
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
