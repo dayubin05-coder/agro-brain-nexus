@@ -38,10 +38,14 @@ export default function AppLayout() {
     queryFn: async () => {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) return null;
-      const { data } = await supabase.from("profiles").select("nome, tipo").eq("id", userData.user.id).single();
+      const { data } = await supabase.from("profiles").select("nome, tipo, avatar_url").eq("id", userData.user.id).single();
       return data;
     },
   });
+
+  const avatarUrl = profile?.avatar_url
+    ? supabase.storage.from("avatars").getPublicUrl(profile.avatar_url).data.publicUrl
+    : null;
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -116,8 +120,12 @@ export default function AppLayout() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-3 hover:bg-muted p-1.5 md:pr-3 rounded-full transition-colors outline-none focus-visible:ring-1 focus-visible:ring-primary">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 text-primary">
-                    <User className="w-4 h-4" />
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 text-primary overflow-hidden">
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <User className="w-4 h-4" />
+                    )}
                   </div>
                   <div className="hidden md:block text-left">
                     <p className="text-sm font-medium text-foreground leading-none">{profile?.nome || "Usuário"}</p>

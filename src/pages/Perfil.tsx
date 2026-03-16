@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -11,7 +11,9 @@ import { motion } from "framer-motion";
 export default function Perfil() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({ nome: "", email: "", telefone: "", tipo: "" });
+  const [uploading, setUploading] = useState(false);
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ["profile"],
@@ -39,6 +41,60 @@ export default function Perfil() {
     }
   }, [profile]);
 
+  const getAvatarUrl = (path: string | null) => {
+    if (!path) return null;
+    const { data } = supabase.storage.from("avatars").getPublicUrl(path);
+    return data.publicUrl;
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "Formato inválido", description: "Selecione uma imagem (JPG, PNG, etc.)", variant: "destructive" });
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ title: "Arquivo muito grande", description: "O tamanho máximo é 2MB.", variant: "destructive" });
+      return;
+    }
+
+    try {
+      setUploading(true);
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) throw new Error("Not authenticated");
+
+      const userId = userData.user.id;
+      const ext = file.name.split(".").pop();
+      const filePath = `${userId}/avatar.${ext}`;
+
+      // Remove old avatar if exists
+      if (profile?.avatar_url) {
+        await supabase.storage.from("avatars").remove([profile.avatar_url]);
+      }
+
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, file, { upsert: true });
+      if (uploadError) throw uploadError;
+
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: filePath })
+        .eq("id", userId);
+      if (updateError) throw updateError;
+
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+      toast({ title: "Avatar atualizado com sucesso!" });
+    } catch (err: any) {
+      toast({ title: "Erro ao enviar avatar", description: err.message, variant: "destructive" });
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
   const updateMutation = useMutation({
     mutationFn: async (data: typeof form) => {
       const { data: userData } = await supabase.auth.getUser();
@@ -65,6 +121,8 @@ export default function Perfil() {
     return <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
   }
 
+  const avatarUrl = getAvatarUrl(profile?.avatar_url ?? null);
+
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
@@ -77,11 +135,26 @@ export default function Perfil() {
         {/* Avatar */}
         <div className="flex items-center gap-4 mb-6 pb-6 border-b border-border">
           <div className="relative">
-            <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center border-2 border-primary/20">
-              <User className="w-10 h-10 text-primary" />
+            <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center border-2 border-primary/20 overflow-hidden">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                <User className="w-10 h-10 text-primary" />
+              )}
             </div>
-            <button className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md hover:opacity-90 transition-opacity">
-              <Camera className="w-3.5 h-3.5" />
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatarUpload}
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md hover:opacity-90 transition-opacity disabled:opacity-50"
+            >
+              {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Camera className="w-3.5 h-3.5" />}
             </button>
           </div>
           <div>
