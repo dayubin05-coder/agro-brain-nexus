@@ -24,6 +24,7 @@ import {
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
   { icon: MapPin, label: "Fazendas", path: "/fazendas" },
+  { icon: Layers, label: "Talhões", path: "/talhoes" },
   { icon: Sprout, label: "Plantio & Colheita", path: "/plantio" },
   { icon: DollarSign, label: "Financeiro", path: "/financeiro" },
   { icon: Package, label: "Estoque", path: "/estoque" },

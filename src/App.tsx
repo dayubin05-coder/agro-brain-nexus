@@ -44,6 +44,7 @@ const App = () => (
               <Route element={<AppLayout />}>
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/fazendas" element={<Fazendas />} />
+                <Route path="/talhoes" element={<Talhoes />} />
                 <Route path="/plantio" element={<Plantio />} />
                 <Route path="/financeiro" element={<Financeiro />} />
                 <Route path="/estoque" element={<Estoque />} />
