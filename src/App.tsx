@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AppLayout from "./components/AppLayout";
 import Dashboard from "./pages/Dashboard";
 import Fazendas from "./pages/Fazendas";
+import Talhoes from "./pages/Talhoes";
 import Plantio from "./pages/Plantio";
 import Financeiro from "./pages/Financeiro";
 import Estoque from "./pages/Estoque";
