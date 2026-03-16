@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
+  Layers,
   LayoutDashboard,
   MapPin,
   Sprout,
@@ -24,6 +25,7 @@ import {
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
   { icon: MapPin, label: "Fazendas", path: "/fazendas" },
+  { icon: Layers, label: "Talhões", path: "/talhoes" },
   { icon: Sprout, label: "Plantio & Colheita", path: "/plantio" },
   { icon: DollarSign, label: "Financeiro", path: "/financeiro" },
   { icon: Package, label: "Estoque", path: "/estoque" },
