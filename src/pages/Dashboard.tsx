@@ -14,17 +14,6 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-
-// Static chart data (will be replaced with real data in future phases)
-const productionData = [
-  { mes: "Jan", soja: 120, milho: 80 },
-  { mes: "Fev", soja: 140, milho: 95 },
-  { mes: "Mar", soja: 160, milho: 110 },
-  { mes: "Abr", soja: 180, milho: 125 },
-  { mes: "Mai", soja: 200, milho: 140 },
-  { mes: "Jun", soja: 190, milho: 135 },
-];
-
 export default function Dashboard() {
   // Fetch current user
   const { data: userData } = useQuery({
@@ -143,6 +132,29 @@ export default function Dashboard() {
     },
   });
 
+  // Fetch colheitas for production chart
+  const { data: colheitasData } = useQuery({
+    queryKey: ["dashboard-colheitas"],
+    enabled: !!userData,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("colheitas")
+        .select(`
+          data_colheita, producao_total,
+          plantios!inner (
+            culturas (nome),
+            talhoes!inner (
+              fazendas!inner (user_id)
+            )
+          )
+        `)
+        .eq("plantios.talhoes.fazendas.user_id", userData?.id)
+        .order("data_colheita", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+  });
+
   // Fetch fazendas for weather (get first farm with coordinates)
   const { data: fazendasData } = useQuery({
     queryKey: ["dashboard-fazendas"],
@@ -159,7 +171,6 @@ export default function Dashboard() {
       return data;
     },
   });
-
   const primaryFarm = fazendasData?.[0];
 
   // Calculate KPIs
@@ -203,7 +214,30 @@ export default function Dashboard() {
     color: ["hsl(152, 55%, 28%)", "hsl(40, 60%, 50%)", "hsl(200, 80%, 50%)", "hsl(25, 70%, 40%)", "hsl(280, 60%, 50%)"][i % 5]
   }));
 
-  // Calculate cost data from expenses
+  // Build production chart data from colheitas grouped by month
+  const productionData = (() => {
+    if (!colheitasData || colheitasData.length === 0) return [];
+    const monthMap = new Map<string, Record<string, number>>();
+    colheitasData.forEach((c: any) => {
+      const d = new Date(c.data_colheita);
+      const mesKey = format(d, "MMM/yy", { locale: ptBR });
+      const cultura = c.plantios?.culturas?.nome || "Outros";
+      if (!monthMap.has(mesKey)) monthMap.set(mesKey, {});
+      const entry = monthMap.get(mesKey)!;
+      entry[cultura] = (entry[cultura] || 0) + Number(c.producao_total);
+    });
+    return Array.from(monthMap.entries()).map(([mes, cultures]) => ({ mes, ...cultures }));
+  })();
+
+  const productionCultures = (() => {
+    if (!colheitasData) return [];
+    const set = new Set<string>();
+    colheitasData.forEach((c: any) => set.add(c.plantios?.culturas?.nome || "Outros"));
+    return Array.from(set);
+  })();
+
+  const chartColors = ["hsl(152, 55%, 28%)", "hsl(40, 60%, 50%)", "hsl(200, 80%, 50%)", "hsl(25, 70%, 40%)", "hsl(280, 60%, 50%)"];
+
   const costData = transacoesData?.filter(t => t.tipo === 'despesa')
     .reduce((acc: any[], t: any) => {
       const categoria = t.categoria || 'Outros';
@@ -316,28 +350,32 @@ export default function Dashboard() {
               className="lg:col-span-2 bg-card rounded-xl p-5 shadow-card border border-border"
             >
               <h3 className="font-display font-semibold text-foreground mb-4">Produção por Mês (ton)</h3>
-              <ResponsiveContainer width="100%" height={260}>
-                <AreaChart data={productionData}>
-                  <defs>
-                    <linearGradient id="sojaGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(152, 55%, 28%)" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="hsl(152, 55%, 28%)" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="milhoGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(40, 60%, 50%)" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="hsl(40, 60%, 50%)" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(150, 10%, 88%)" />
-                  <XAxis dataKey="mes" tick={{ fontSize: 12, fill: "hsl(160, 10%, 45%)" }} />
-                  <YAxis tick={{ fontSize: 12, fill: "hsl(160, 10%, 45%)" }} />
-                  <Tooltip
-                    contentStyle={{ background: "hsl(0, 0%, 100%)", border: "1px solid hsl(150, 10%, 88%)", borderRadius: "8px", fontSize: "12px" }}
-                  />
-                  <Area type="monotone" dataKey="soja" stroke="hsl(152, 55%, 28%)" fill="url(#sojaGrad)" strokeWidth={2} name="Soja" />
-                  <Area type="monotone" dataKey="milho" stroke="hsl(40, 60%, 50%)" fill="url(#milhoGrad)" strokeWidth={2} name="Milho" />
-                </AreaChart>
-              </ResponsiveContainer>
+              {productionData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={260}>
+                  <AreaChart data={productionData}>
+                    <defs>
+                      {productionCultures.map((c, i) => (
+                        <linearGradient key={c} id={`grad-${i}`} x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor={chartColors[i % chartColors.length]} stopOpacity={0.3} />
+                          <stop offset="95%" stopColor={chartColors[i % chartColors.length]} stopOpacity={0} />
+                        </linearGradient>
+                      ))}
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(150, 10%, 88%)" />
+                    <XAxis dataKey="mes" tick={{ fontSize: 12, fill: "hsl(160, 10%, 45%)" }} />
+                    <YAxis tick={{ fontSize: 12, fill: "hsl(160, 10%, 45%)" }} />
+                    <Tooltip contentStyle={{ background: "hsl(0, 0%, 100%)", border: "1px solid hsl(150, 10%, 88%)", borderRadius: "8px", fontSize: "12px" }} />
+                    {productionCultures.map((c, i) => (
+                      <Area key={c} type="monotone" dataKey={c} stroke={chartColors[i % chartColors.length]} fill={`url(#grad-${i})`} strokeWidth={2} name={c} />
+                    ))}
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-[260px] text-muted-foreground">
+                  <Sprout className="w-10 h-10 mb-2 opacity-50" />
+                  <p className="text-sm">Nenhuma colheita registrada ainda</p>
+                </div>
+              )}
             </motion.div>
 
             {/* Culture distribution */}
