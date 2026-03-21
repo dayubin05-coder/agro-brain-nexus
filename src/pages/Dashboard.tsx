@@ -350,28 +350,32 @@ export default function Dashboard() {
               className="lg:col-span-2 bg-card rounded-xl p-5 shadow-card border border-border"
             >
               <h3 className="font-display font-semibold text-foreground mb-4">Produção por Mês (ton)</h3>
-              <ResponsiveContainer width="100%" height={260}>
-                <AreaChart data={productionData}>
-                  <defs>
-                    <linearGradient id="sojaGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(152, 55%, 28%)" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="hsl(152, 55%, 28%)" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="milhoGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(40, 60%, 50%)" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="hsl(40, 60%, 50%)" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(150, 10%, 88%)" />
-                  <XAxis dataKey="mes" tick={{ fontSize: 12, fill: "hsl(160, 10%, 45%)" }} />
-                  <YAxis tick={{ fontSize: 12, fill: "hsl(160, 10%, 45%)" }} />
-                  <Tooltip
-                    contentStyle={{ background: "hsl(0, 0%, 100%)", border: "1px solid hsl(150, 10%, 88%)", borderRadius: "8px", fontSize: "12px" }}
-                  />
-                  <Area type="monotone" dataKey="soja" stroke="hsl(152, 55%, 28%)" fill="url(#sojaGrad)" strokeWidth={2} name="Soja" />
-                  <Area type="monotone" dataKey="milho" stroke="hsl(40, 60%, 50%)" fill="url(#milhoGrad)" strokeWidth={2} name="Milho" />
-                </AreaChart>
-              </ResponsiveContainer>
+              {productionData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={260}>
+                  <AreaChart data={productionData}>
+                    <defs>
+                      {productionCultures.map((c, i) => (
+                        <linearGradient key={c} id={`grad-${i}`} x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor={chartColors[i % chartColors.length]} stopOpacity={0.3} />
+                          <stop offset="95%" stopColor={chartColors[i % chartColors.length]} stopOpacity={0} />
+                        </linearGradient>
+                      ))}
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(150, 10%, 88%)" />
+                    <XAxis dataKey="mes" tick={{ fontSize: 12, fill: "hsl(160, 10%, 45%)" }} />
+                    <YAxis tick={{ fontSize: 12, fill: "hsl(160, 10%, 45%)" }} />
+                    <Tooltip contentStyle={{ background: "hsl(0, 0%, 100%)", border: "1px solid hsl(150, 10%, 88%)", borderRadius: "8px", fontSize: "12px" }} />
+                    {productionCultures.map((c, i) => (
+                      <Area key={c} type="monotone" dataKey={c} stroke={chartColors[i % chartColors.length]} fill={`url(#grad-${i})`} strokeWidth={2} name={c} />
+                    ))}
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-[260px] text-muted-foreground">
+                  <Sprout className="w-10 h-10 mb-2 opacity-50" />
+                  <p className="text-sm">Nenhuma colheita registrada ainda</p>
+                </div>
+              )}
             </motion.div>
 
             {/* Culture distribution */}
