@@ -132,6 +132,29 @@ export default function Dashboard() {
     },
   });
 
+  // Fetch colheitas for production chart
+  const { data: colheitasData } = useQuery({
+    queryKey: ["dashboard-colheitas"],
+    enabled: !!userData,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("colheitas")
+        .select(`
+          data_colheita, producao_total,
+          plantios!inner (
+            culturas (nome),
+            talhoes!inner (
+              fazendas!inner (user_id)
+            )
+          )
+        `)
+        .eq("plantios.talhoes.fazendas.user_id", userData?.id)
+        .order("data_colheita", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+  });
+
   // Fetch fazendas for weather (get first farm with coordinates)
   const { data: fazendasData } = useQuery({
     queryKey: ["dashboard-fazendas"],
@@ -148,7 +171,6 @@ export default function Dashboard() {
       return data;
     },
   });
-
   const primaryFarm = fazendasData?.[0];
 
   // Calculate KPIs
