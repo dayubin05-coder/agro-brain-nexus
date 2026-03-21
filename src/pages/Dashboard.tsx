@@ -14,17 +14,6 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-
-// Static chart data (will be replaced with real data in future phases)
-const productionData = [
-  { mes: "Jan", soja: 120, milho: 80 },
-  { mes: "Fev", soja: 140, milho: 95 },
-  { mes: "Mar", soja: 160, milho: 110 },
-  { mes: "Abr", soja: 180, milho: 125 },
-  { mes: "Mai", soja: 200, milho: 140 },
-  { mes: "Jun", soja: 190, milho: 135 },
-];
-
 export default function Dashboard() {
   // Fetch current user
   const { data: userData } = useQuery({
