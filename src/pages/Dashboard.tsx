@@ -214,7 +214,30 @@ export default function Dashboard() {
     color: ["hsl(152, 55%, 28%)", "hsl(40, 60%, 50%)", "hsl(200, 80%, 50%)", "hsl(25, 70%, 40%)", "hsl(280, 60%, 50%)"][i % 5]
   }));
 
-  // Calculate cost data from expenses
+  // Build production chart data from colheitas grouped by month
+  const productionData = (() => {
+    if (!colheitasData || colheitasData.length === 0) return [];
+    const monthMap = new Map<string, Record<string, number>>();
+    colheitasData.forEach((c: any) => {
+      const d = new Date(c.data_colheita);
+      const mesKey = format(d, "MMM/yy", { locale: ptBR });
+      const cultura = c.plantios?.culturas?.nome || "Outros";
+      if (!monthMap.has(mesKey)) monthMap.set(mesKey, {});
+      const entry = monthMap.get(mesKey)!;
+      entry[cultura] = (entry[cultura] || 0) + Number(c.producao_total);
+    });
+    return Array.from(monthMap.entries()).map(([mes, cultures]) => ({ mes, ...cultures }));
+  })();
+
+  const productionCultures = (() => {
+    if (!colheitasData) return [];
+    const set = new Set<string>();
+    colheitasData.forEach((c: any) => set.add(c.plantios?.culturas?.nome || "Outros"));
+    return Array.from(set);
+  })();
+
+  const chartColors = ["hsl(152, 55%, 28%)", "hsl(40, 60%, 50%)", "hsl(200, 80%, 50%)", "hsl(25, 70%, 40%)", "hsl(280, 60%, 50%)"];
+
   const costData = transacoesData?.filter(t => t.tipo === 'despesa')
     .reduce((acc: any[], t: any) => {
       const categoria = t.categoria || 'Outros';
