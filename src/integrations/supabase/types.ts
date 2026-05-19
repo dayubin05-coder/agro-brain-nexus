@@ -558,6 +558,33 @@ export type Database = {
         }
         Relationships: []
       }
+      security_audit_reports: {
+        Row: {
+          created_at: string
+          id: string
+          pdf_url: string | null
+          resumo: string | null
+          titulo: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          pdf_url?: string | null
+          resumo?: string | null
+          titulo: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          pdf_url?: string | null
+          resumo?: string | null
+          titulo?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       spatial_ref_sys: {
         Row: {
           auth_name: string | null

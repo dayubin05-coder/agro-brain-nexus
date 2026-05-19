@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import {
   Sprout, DollarSign, TrendingUp, Truck, Package, Users, CloudSun,
-  Bug, ArrowUpRight, ArrowDownRight, Loader2, AlertTriangle,
+  Bug, ArrowUpRight, ArrowDownRight, Loader2, AlertTriangle, ShieldCheck, Download
 } from "lucide-react";
 import MetricCard from "@/components/MetricCard";
 import AlertCard from "@/components/AlertCard";
@@ -293,9 +293,24 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-display font-bold text-foreground">Dashboard</h1>
-        <p className="text-muted-foreground text-sm mt-1">Visão geral da sua operação agrícola</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-display font-bold text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground text-sm mt-1">Visão geral da sua operação agrícola</p>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <a 
+            href="https://rpowegchummgmdckzcik.supabase.co/storage/v1/object/public/documents/security-audits%2FRelatorio_Auditoria_RLS.pdf" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-success/10 text-success text-xs font-semibold hover:bg-success/20 transition-colors border border-success/20"
+          >
+            <ShieldCheck className="w-3.5 h-3.5" />
+            Auditoria RLS (PDF)
+            <Download className="w-3.5 h-3.5" />
+          </a>
+        </div>
       </div>
 
       {isLoading ? (
