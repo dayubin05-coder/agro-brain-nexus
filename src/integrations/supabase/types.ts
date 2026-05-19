@@ -1048,6 +1048,15 @@ export type Database = {
         Returns: boolean
       }
       geomfromewkt: { Args: { "": string }; Returns: unknown }
+      get_tables_rls_status: {
+        Args: never
+        Returns: {
+          evaluation: string
+          policy_count: number
+          rls_enabled: boolean
+          table_name: string
+        }[]
+      }
       gettransactionid: { Args: never; Returns: unknown }
       longtransactionsenabled: { Args: never; Returns: boolean }
       populate_geometry_columns:
