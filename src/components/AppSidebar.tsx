@@ -38,6 +38,7 @@ const navItems = [
   { icon: Bot, label: "IA Agrícola", path: "/ia" },
   { icon: Recycle, label: "Sustentabilidade", path: "/sustentabilidade" },
   { icon: FileText, label: "Relatórios", path: "/relatorios" },
+  { icon: ShieldCheck, label: "Auditoria RLS", path: "/auditoria-rls" },
   { icon: UserCircle, label: "Meu Perfil", path: "/perfil" },
 ];
 
