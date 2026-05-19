@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
-  ShoppingCart, Package, Truck, Users, Search, Star, MapPin, Phone, Filter,
+  ShoppingCart, Package, Truck, Users, Search, Star, MapPin, Gavel, Plus, Loader2
 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
