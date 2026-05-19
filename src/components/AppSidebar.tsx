@@ -20,6 +20,7 @@ import {
   Recycle,
   FileText,
   UserCircle,
+  ShieldCheck,
 } from "lucide-react";
 
 const navItems = [
