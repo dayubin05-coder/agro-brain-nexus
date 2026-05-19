@@ -21,6 +21,7 @@ import IAAgricola from "./pages/IAAgricola";
 import Sustentabilidade from "./pages/Sustentabilidade";
 import Perfil from "./pages/Perfil";
 import Relatorios from "./pages/Relatorios";
+import AuditoriaRLS from "./pages/AuditoriaRLS";
 import NotFound from "./pages/NotFound";
 import AuthGuard from "./components/AuthGuard";
 import Login from "./pages/Login";
@@ -58,6 +59,7 @@ const App = () => (
                 <Route path="/sustentabilidade" element={<Sustentabilidade />} />
                 <Route path="/perfil" element={<Perfil />} />
                 <Route path="/relatorios" element={<Relatorios />} />
+                <Route path="/auditoria-rls" element={<AuditoriaRLS />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
