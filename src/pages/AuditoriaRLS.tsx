@@ -23,6 +23,7 @@ import { ptBR } from "date-fns/locale";
 
 export default function AuditoriaRLS() {
   const [search, setSearch] = useState("");
+  const [showTableStatus, setShowTableStatus] = useState(false);
 
   const { data: reports, isLoading } = useQuery({
     queryKey: ["security-audit-reports"],
