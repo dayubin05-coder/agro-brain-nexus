@@ -61,8 +61,8 @@ export default function Marketplace() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard icon={ShoppingCart} title="Anúncios Ativos" value={anuncios?.length || 0} change="Na sua região" changeType="neutral" delay={0} />
-        <MetricCard icon={Package} title="Suas Vendas" value={minhasVendas?.length || 0} change="Vendas ativas" changeType="positive" delay={0.1} />
+        <MetricCard icon={ShoppingCart} title="Anúncios Ativos" value={(anuncios?.length || 0).toString()} change="Na sua região" changeType="neutral" delay={0} />
+        <MetricCard icon={Package} title="Suas Vendas" value={(minhasVendas?.length || 0).toString()} change="Vendas ativas" changeType="positive" delay={0.1} />
         <MetricCard icon={Truck} title="Fretes" value="--" change="Disponíveis" changeType="neutral" delay={0.2} />
         <MetricCard icon={Users} title="Fornecedores" value="--" change="Verificados" changeType="neutral" delay={0.3} />
       </div>
