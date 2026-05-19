@@ -3,12 +3,12 @@ import { motion } from "framer-motion";
 import {
   ShoppingCart, Package, Truck, Users, Search, Star, MapPin, Gavel, Plus, Loader2
 } from "lucide-react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Plus, Gavel } from "lucide-react";
+import MetricCard from "@/components/MetricCard";
 
 const categorias = ["Todos", "Venda", "Serviço", "Máquina", "Transporte", "Consultoria"];
 
@@ -53,7 +53,6 @@ export default function Marketplace() {
     },
   });
 
-export default function Marketplace() {
   return (
     <div className="space-y-6">
       <div>
@@ -90,7 +89,6 @@ export default function Marketplace() {
         </div>
       </div>
 
-      {/* My sales */}
       {minhasVendas && minhasVendas.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
           className="bg-card rounded-xl p-5 shadow-card border border-border">
@@ -98,7 +96,7 @@ export default function Marketplace() {
             <Plus className="w-5 h-5 text-primary" /> Minhas Ofertas
           </h3>
           <div className="space-y-3">
-            {minhasVendas.map((v: any, i) => (
+            {minhasVendas.map((v: any) => (
               <div key={v.id} className="flex items-center gap-4 p-3 rounded-lg border border-border">
                 <div className="flex-1">
                   <p className="text-sm font-medium text-foreground">{v.titulo}</p>
@@ -115,7 +113,6 @@ export default function Marketplace() {
         </motion.div>
       )}
 
-      {/* Listings */}
       {isLoading ? (
         <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
       ) : (
