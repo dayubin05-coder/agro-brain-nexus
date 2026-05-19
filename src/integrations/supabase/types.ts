@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_chat_memory: {
+        Row: {
+          content: Json
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          content: Json
+          created_at?: string
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       colheitas: {
         Row: {
           created_at: string
@@ -279,6 +303,89 @@ export type Database = {
             columns: ["fazenda_id"]
             isOneToOne: false
             referencedRelation: "fazendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_anuncios: {
+        Row: {
+          categoria: string
+          created_at: string
+          descricao: string | null
+          id: string
+          imagem_url: string | null
+          localizacao: string | null
+          preco: string
+          status: string
+          tipo: string
+          titulo: string
+          unidade: string | null
+          user_id: string
+        }
+        Insert: {
+          categoria: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          imagem_url?: string | null
+          localizacao?: string | null
+          preco: string
+          status?: string
+          tipo: string
+          titulo: string
+          unidade?: string | null
+          user_id: string
+        }
+        Update: {
+          categoria?: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          imagem_url?: string | null
+          localizacao?: string | null
+          preco?: string
+          status?: string
+          tipo?: string
+          titulo?: string
+          unidade?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      marketplace_propostas: {
+        Row: {
+          anuncio_id: string
+          created_at: string
+          id: string
+          mensagem: string | null
+          status: string
+          user_id: string
+          valor: number
+        }
+        Insert: {
+          anuncio_id: string
+          created_at?: string
+          id?: string
+          mensagem?: string | null
+          status?: string
+          user_id: string
+          valor: number
+        }
+        Update: {
+          anuncio_id?: string
+          created_at?: string
+          id?: string
+          mensagem?: string | null
+          status?: string
+          user_id?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_propostas_anuncio_id_fkey"
+            columns: ["anuncio_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_anuncios"
             referencedColumns: ["id"]
           },
         ]
