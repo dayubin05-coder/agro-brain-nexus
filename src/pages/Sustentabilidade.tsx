@@ -49,10 +49,12 @@ export default function Sustentabilidade() {
   const { data: registros, isLoading } = useQuery({
     queryKey: ["sustentabilidade"],
     queryFn: async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) throw new Error("Not authenticated");
-      const { data, error } = await supabase.from("sustentabilidade_registros").select("*, fazendas(nome)").order("data", { ascending: false });
-      if (error) throw error; return data;
+      const { data, error } = await supabase
+        .from("sustentabilidade_registros")
+        .select("*, fazendas(nome)")
+        .order("data", { ascending: false });
+      if (error) throw error;
+      return data;
     },
   });
 
