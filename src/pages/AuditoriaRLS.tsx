@@ -37,41 +37,9 @@ export default function AuditoriaRLS() {
   const { data: tableStatus, isLoading: isLoadingStatus } = useQuery({
     queryKey: ["tables-security-audit"],
     queryFn: async () => {
-      // Since we can't run complex psql via the client directly easily without a dedicated RPC,
-      // we'll fetch the tables and their current policy counts using available metadata if possible,
-      // or use a safe set of queries.
-      
-      // For this implementation, we fetch the list of tables we know should be protected
-      // and check their RLS state.
-      const tablesToAudit = [
-        "ai_chat_memory", "colheitas", "culturas", "estoque", "fazendas", 
-        "funcionarios", "maquinas", "marketplace_anuncios", "marketplace_propostas", 
-        "plantios", "pragas_ocorrencias", "profiles", "sustentabilidade_registros", 
-        "talhoes", "transacoes_financeiras"
-      ];
-
-      // In a real-world scenario, we'd use a database function. 
-      // For now, we simulate the live check based on the successful audit performed earlier.
-      // This matches the data from our shell script audit.
-      const mockAuditResults: TableSecurityStatus[] = [
-        { table_name: "ai_chat_memory", rls_enabled: true, policy_count: 1, evaluation: "Conforme" },
-        { table_name: "colheitas", rls_enabled: true, policy_count: 4, evaluation: "Conforme" },
-        { table_name: "culturas", rls_enabled: true, policy_count: 1, evaluation: "Conforme" },
-        { table_name: "estoque", rls_enabled: true, policy_count: 4, evaluation: "Conforme" },
-        { table_name: "fazendas", rls_enabled: true, policy_count: 4, evaluation: "Conforme" },
-        { table_name: "funcionarios", rls_enabled: true, policy_count: 4, evaluation: "Conforme" },
-        { table_name: "maquinas", rls_enabled: true, policy_count: 4, evaluation: "Conforme" },
-        { table_name: "marketplace_anuncios", rls_enabled: true, policy_count: 2, evaluation: "Conforme" },
-        { table_name: "marketplace_propostas", rls_enabled: true, policy_count: 2, evaluation: "Conforme" },
-        { table_name: "plantios", rls_enabled: true, policy_count: 4, evaluation: "Conforme" },
-        { table_name: "pragas_ocorrencias", rls_enabled: true, policy_count: 4, evaluation: "Conforme" },
-        { table_name: "profiles", rls_enabled: true, policy_count: 3, evaluation: "Conforme" },
-        { table_name: "sustentabilidade_registros", rls_enabled: true, policy_count: 6, evaluation: "Conforme" },
-        { table_name: "talhoes", rls_enabled: true, policy_count: 4, evaluation: "Conforme" },
-        { table_name: "transacoes_financeiras", rls_enabled: true, policy_count: 4, evaluation: "Conforme" },
-      ];
-
-      return mockAuditResults;
+      const { data, error } = await supabase.rpc('get_tables_rls_status');
+      if (error) throw error;
+      return data as TableSecurityStatus[];
     }
   });
 
