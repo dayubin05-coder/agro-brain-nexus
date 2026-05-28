@@ -139,7 +139,7 @@ export default function TalhoesDashboard() {
 
   const statCards = [
     { label: "Total de Talhões", value: filtered.length, icon: Layers, color: "text-primary" },
-    { label: "Área Total", value: `${totalArea.toLocaleString("pt-BR")} ha`, icon: Ruler, color: "text-secondary" },
+    { label: "Área Total", value: `${formatNumberBR(totalArea)} ha`, icon: Ruler, color: "text-secondary" },
     { label: "Com Plantio Ativo", value: filtered.filter((t) => t.plantios_count > 0).length, icon: Sprout, color: "text-success" },
     { label: "Mapeados (GPS)", value: withCoords.length, icon: MapPin, color: "text-info" },
   ];
