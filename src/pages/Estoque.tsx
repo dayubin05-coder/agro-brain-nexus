@@ -235,7 +235,7 @@ export default function Estoque() {
                     <tr key={item.id} className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
                       <td className="py-3 px-4 font-medium text-foreground">{item.nome}</td>
                       <td className="py-3 px-4 text-muted-foreground">{item.categoria || "-"}</td>
-                      <td className="py-3 px-4 text-right text-foreground">{Number(item.quantidade).toLocaleString()} {item.unidade}</td>
+                      <td className="py-3 px-4 text-right text-foreground">{formatNumberBR(Number(item.quantidade))} {item.unidade}</td>
                       <td className="py-3 px-4 text-right text-foreground">
                         {item.valor_unitario ? formatBRL(item.valor_unitario * item.quantidade) : "-"}
                       </td>
