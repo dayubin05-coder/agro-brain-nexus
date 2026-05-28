@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { formatBRLCompact, formatDateBR, formatBRL, formatMonthShortBR } from "@/lib/formatters";
 
 const categoriasList = ["Venda", "Insumos", "Mão de obra", "Combustível", "Manutenção", "Logística", "Outros"];
 const emptyForm = { fazenda_id: "", descricao: "", valor: "", tipo: "despesa", data: "", categoria: "" };
@@ -87,13 +88,9 @@ export default function Financeiro() {
     monthlyMap.set(month, entry);
   });
   const chartData = Array.from(monthlyMap.entries()).sort(([a], [b]) => a.localeCompare(b)).slice(-6)
-    .map(([month, data]) => ({ mes: new Date(month + "-15").toLocaleDateString("pt-BR", { month: "short" }), receitas: data.receitas, despesas: data.despesas }));
+    .map(([month, data]) => ({ mes: formatMonthShortBR(month), receitas: data.receitas, despesas: data.despesas }));
 
-  const formatCurrency = (v: number) => {
-    if (Math.abs(v) >= 1000000) return `R$ ${(v / 1000000).toFixed(2)}M`;
-    if (Math.abs(v) >= 1000) return `R$ ${(v / 1000).toFixed(1)}K`;
-    return `R$ ${v.toFixed(2)}`;
-  };
+  const formatCurrency = formatBRLCompact;
 
   const TransactionFormFields = ({ data, setData }: { data: any; setData: (d: any) => void }) => (
     <>
@@ -231,10 +228,10 @@ export default function Financeiro() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">{t.descricao}</p>
-                    <p className="text-xs text-muted-foreground">{new Date(t.data).toLocaleDateString("pt-BR")} · {t.categoria || "Sem categoria"}</p>
+                    <p className="text-xs text-muted-foreground">{formatDateBR(t.data)} · {t.categoria || "Sem categoria"}</p>
                   </div>
                   <span className={`text-sm font-semibold ${t.tipo === "receita" ? "text-success" : "text-destructive"}`}>
-                    {t.tipo === "receita" ? "+" : "-"} R$ {Number(t.valor).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    {t.tipo === "receita" ? "+" : "-"} {formatBRL(Number(t.valor))}
                   </span>
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button onClick={() => openEdit(t)} className="text-muted-foreground hover:text-primary"><Pencil className="w-3.5 h-3.5" /></button>
