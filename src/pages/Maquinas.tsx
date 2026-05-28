@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { formatNumberBR } from "@/lib/formatters";
 
 const tipos = ["Trator", "Colheitadeira", "Pulverizador", "Implemento", "Drone", "Caminhão", "Outro"];
 const statusIcon: Record<string, { icon: React.ElementType; color: string; bg: string; label: string }> = {
@@ -202,7 +203,7 @@ export default function Maquinas() {
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3 mt-4">
-                  <div className="flex items-center gap-2 text-xs"><Clock className="w-3.5 h-3.5 text-muted-foreground" /><span className="text-muted-foreground">{(m.horas_uso || 0).toLocaleString()}h</span></div>
+                  <div className="flex items-center gap-2 text-xs"><Clock className="w-3.5 h-3.5 text-muted-foreground" /><span className="text-muted-foreground">{formatNumberBR(m.horas_uso || 0)}h</span></div>
                   {m.ano && <div className="flex items-center gap-2 text-xs"><span className="text-muted-foreground">Ano: {m.ano}</span></div>}
                   {m.combustivel_percentual != null && (
                     <div className="flex items-center gap-2 text-xs col-span-2">
