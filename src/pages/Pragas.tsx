@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { formatDateBR } from "@/lib/formatters";
 
 const sevColor: Record<string, string> = { alta: "bg-destructive/10 text-destructive", media: "bg-warning/10 text-warning", baixa: "bg-success/10 text-success" };
 const emptyForm = { fazenda_id: "", nome: "", tipo: "praga", severidade: "media", cultura: "", area_afetada: "", recomendacao: "", data_deteccao: "", status: "ativa" };
@@ -206,7 +207,7 @@ export default function Pragas() {
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm mb-3">
                 {p.talhoes?.nome && <div className="flex items-center gap-1.5 text-xs text-muted-foreground"><MapPin className="w-3.5 h-3.5" /> {p.talhoes.nome}</div>}
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground"><Calendar className="w-3.5 h-3.5" /> {new Date(p.data_deteccao).toLocaleDateString("pt-BR")}</div>
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground"><Calendar className="w-3.5 h-3.5" /> {formatDateBR(p.data_deteccao)}</div>
                 {p.area_afetada && <div className="text-xs text-muted-foreground">{p.area_afetada} ha afetados</div>}
               </div>
               {p.recomendacao && <div className="p-3 rounded-lg bg-accent/50 text-xs text-accent-foreground"><strong>Recomendação:</strong> {p.recomendacao}</div>}
