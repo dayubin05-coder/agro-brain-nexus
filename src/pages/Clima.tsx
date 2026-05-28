@@ -8,15 +8,10 @@ import WeatherWidget from "@/components/WeatherWidget";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 export default function Clima() {
-  const { data: userData } = useQuery({
-    queryKey: ["user"],
-    queryFn: async () => {
-      const { data } = await supabase.auth.getUser();
-      return data.user;
-    },
-  });
+  const { data: userData } = useCurrentUser();
 
   const { data: fazendas, isLoading } = useQuery({
     queryKey: ["clima-fazendas"],

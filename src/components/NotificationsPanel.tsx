@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AlertTriangle, Package, Wrench, Bug, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 interface Notification {
   id: string;

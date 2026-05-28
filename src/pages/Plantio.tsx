@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 const produtividadeData = [
   { safra: "20/21", soja: 58, milho: 95 }, { safra: "21/22", soja: 62, milho: 102 },
@@ -38,7 +39,7 @@ export default function Plantio() {
   const [editingItem, setEditingItem] = useState<any>(null);
   const [newPlantio, setNewPlantio] = useState(emptyForm);
 
-  const { data: userData } = useQuery({ queryKey: ["user"], queryFn: async () => { const { data } = await supabase.auth.getUser(); return data.user; } });
+  const { data: userData } = useCurrentUser();
   const { data: culturas } = useQuery({ queryKey: ["culturas"], queryFn: async () => { const { data, error } = await supabase.from("culturas").select("*").order("nome"); if (error) throw error; return data; } });
   const { data: talhoes } = useQuery({
     queryKey: ["talhoes-disponiveis"], enabled: !!userData,
