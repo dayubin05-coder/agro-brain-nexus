@@ -53,7 +53,6 @@ export default function Fazendas() {
       }]);
       if (error) throw error;
     },
-    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["fazendas"] });
       toast({ title: "Fazenda adicionada", description: "A nova fazenda foi cadastrada com sucesso." });
