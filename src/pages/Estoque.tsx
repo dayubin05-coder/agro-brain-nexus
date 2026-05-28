@@ -12,7 +12,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatBRL, formatBRLKilo } from "@/lib/formatters";
-import { formatBRL, formatBRLKilo } from "@/lib/formatters";
 const categorias = ["Sementes", "Fertilizantes", "Defensivos", "Combustível", "Peças", "Outros"];
 const emptyForm = { fazenda_id: "", nome: "", categoria: "", quantidade: "", unidade: "kg", quantidade_minima: "", valor_unitario: "" };
 
