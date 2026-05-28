@@ -33,7 +33,6 @@ export const formatBRLPlain = (value: number): string =>
 
 export const formatDateBR = (date: string | Date): string =>
   new Date(date).toLocaleDateString("pt-BR");
-  new Date(date).toLocaleDateString("pt-BR");
 
 export const formatMonthShortBR = (yearMonth: string): string =>
   new Date(yearMonth + "-15").toLocaleDateString("pt-BR", { month: "short" });
