@@ -1,17 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useCurrentUser } from "./use-current-user";
 
 export function useUserFazendas() {
-  const { data: userData } = useQuery({
-    queryKey: ["user"],
-    queryFn: async () => {
-      const { data } = await supabase.auth.getUser();
-      return data.user;
-    },
-  });
+  const { data: userData } = useCurrentUser();
 
   const { data: fazendas, isLoading } = useQuery({
-    queryKey: ["user-fazendas"],
+    queryKey: ["user-fazendas", userData?.id],
     enabled: !!userData,
     queryFn: async () => {
       const { data, error } = await supabase
