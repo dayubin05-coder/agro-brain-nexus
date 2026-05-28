@@ -11,7 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { formatBRL, formatBRLKilo } from "@/lib/formatters";
 const categorias = ["Sementes", "Fertilizantes", "Defensivos", "Combustível", "Peças", "Outros"];
 const emptyForm = { fazenda_id: "", nome: "", categoria: "", quantidade: "", unidade: "kg", quantidade_minima: "", valor_unitario: "" };
 
@@ -194,7 +195,7 @@ export default function Estoque() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard icon={Package} title="Total de Itens" value={String(items.length)} change={`${new Set(items.map(i => i.categoria)).size} categorias`} changeType="neutral" delay={0} />
         <MetricCard icon={AlertTriangle} title="Estoque Baixo" value={`${alertas} itens`} change={alertas > 0 ? "Ação necessária" : "Tudo OK"} changeType={alertas > 0 ? "negative" : "positive"} delay={0.1} />
-        <MetricCard icon={Package} title="Valor Total" value={`R$ ${(valorTotal / 1000).toFixed(0)}K`} change="Insumos em estoque" changeType="neutral" delay={0.2} />
+        <MetricCard icon={Package} title="Valor Total" value={formatBRLKilo(valorTotal)} change="Insumos em estoque" changeType="neutral" delay={0.2} />
         <MetricCard icon={Package} title="Fazendas" value={String(new Set(items.map(i => i.fazenda_id)).size)} change="Com estoque" changeType="neutral" delay={0.3} />
       </div>
 
@@ -237,7 +238,7 @@ export default function Estoque() {
                       <td className="py-3 px-4 text-muted-foreground">{item.categoria || "-"}</td>
                       <td className="py-3 px-4 text-right text-foreground">{Number(item.quantidade).toLocaleString()} {item.unidade}</td>
                       <td className="py-3 px-4 text-right text-foreground">
-                        {item.valor_unitario ? `R$ ${(item.valor_unitario * item.quantidade).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "-"}
+                        {item.valor_unitario ? formatBRL(item.valor_unitario * item.quantidade) : "-"}
                       </td>
                       <td className="py-3 px-4 text-center">
                         <span className={`text-xs font-medium px-2 py-1 rounded-full ${
