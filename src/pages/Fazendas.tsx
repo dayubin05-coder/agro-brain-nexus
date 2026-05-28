@@ -17,6 +17,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import TalhoesManager from "@/components/TalhoesManager";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 const emptyForm = { nome: "", cidade: "", estado: "", area_total: "" };
 
@@ -27,16 +28,16 @@ export default function Fazendas() {
   const [editingFarm, setEditingFarm] = useState<any>(null);
   const [newFarm, setNewFarm] = useState(emptyForm);
   const [talhoesOpen, setTalhoesOpen] = useState<{ id: string; nome: string } | null>(null);
+  const { data: user } = useCurrentUser();
 
   const { data: fazendas, isLoading } = useQuery({
-    queryKey: ["fazendas"],
+    queryKey: ["fazendas", user?.id],
+    enabled: !!user,
     queryFn: async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) throw new Error("Not authenticated");
       const { data, error } = await supabase
         .from("fazendas")
         .select(`*, talhoes (id, nome, area, coordenadas)`)
-        .eq('user_id', userData.user.id)
+        .eq('user_id', user!.id)
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data;
@@ -45,13 +46,13 @@ export default function Fazendas() {
 
   const addFarmMutation = useMutation({
     mutationFn: async (farmData: typeof newFarm) => {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) throw new Error("Not authenticated");
+      if (!user) throw new Error("Not authenticated");
       const { error } = await supabase.from("fazendas").insert([{
         nome: farmData.nome, cidade: farmData.cidade, estado: farmData.estado,
-        area_total: Number(farmData.area_total), user_id: userData.user.id,
+        area_total: Number(farmData.area_total), user_id: user.id,
       }]);
       if (error) throw error;
+    },
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["fazendas"] });

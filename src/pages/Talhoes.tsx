@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TalhoesManager from "@/components/TalhoesManager";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 // Fix default marker icon
 import icon from "leaflet/dist/images/marker-icon.png";
@@ -41,12 +42,12 @@ export default function TalhoesDashboard() {
   const [selectedFarm, setSelectedFarm] = useState<string>("all");
   const [manageFarm, setManageFarm] = useState<{ id: string; nome: string } | null>(null);
 
-  const { data: talhoes, isLoading } = useQuery({
-    queryKey: ["talhoes-dashboard"],
-    queryFn: async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) throw new Error("Not authenticated");
+  const { data: user } = useCurrentUser();
 
+  const { data: talhoes, isLoading } = useQuery({
+    queryKey: ["talhoes-dashboard", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
       const { data, error } = await supabase
         .from("talhoes")
         .select(`
@@ -54,8 +55,10 @@ export default function TalhoesDashboard() {
           fazendas!inner (id, nome, cidade, estado, user_id),
           plantios (id)
         `)
-        .eq("fazendas.user_id", userData.user.id)
+        .eq("fazendas.user_id", user!.id)
         .order("created_at", { ascending: false });
+
+      if (error) throw error;
 
       if (error) throw error;
 
