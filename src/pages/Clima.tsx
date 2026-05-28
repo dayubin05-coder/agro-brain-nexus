@@ -55,7 +55,7 @@ export default function Clima() {
 
   // Build daily precipitation chart data
   const precipChartData = weatherData?.daily?.time?.map((date: string, i: number) => ({
-    dia: new Date(date + "T12:00:00").toLocaleDateString("pt-BR", { weekday: "short" }),
+    dia: formatWeekdayShortBR(date),
     valor: Math.round(weatherData.daily.precipitation_sum[i]),
   })) || [];
 
