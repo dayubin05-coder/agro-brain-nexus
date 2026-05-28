@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 export default function Perfil() {
   const { toast } = useToast();
@@ -15,15 +16,16 @@ export default function Perfil() {
   const [form, setForm] = useState({ nome: "", email: "", telefone: "", tipo: "" });
   const [uploading, setUploading] = useState(false);
 
+  const { data: user } = useCurrentUser();
+
   const { data: profile, isLoading } = useQuery({
-    queryKey: ["profile"],
+    queryKey: ["profile", user?.id],
+    enabled: !!user,
     queryFn: async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) throw new Error("Not authenticated");
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", userData.user.id)
+        .eq("id", user!.id)
         .single();
       if (error) throw error;
       return data;
@@ -62,10 +64,9 @@ export default function Perfil() {
 
     try {
       setUploading(true);
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) throw new Error("Not authenticated");
+      if (!user) throw new Error("Not authenticated");
 
-      const userId = userData.user.id;
+      const userId = user.id;
       const ext = file.name.split(".").pop();
       const filePath = `${userId}/avatar.${ext}`;
 
@@ -97,13 +98,13 @@ export default function Perfil() {
 
   const updateMutation = useMutation({
     mutationFn: async (data: typeof form) => {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) throw new Error("Not authenticated");
+      if (!user) throw new Error("Not authenticated");
       const { error } = await supabase
         .from("profiles")
         .update({ nome: data.nome, telefone: data.telefone, tipo: data.tipo })
-        .eq("id", userData.user.id);
+        .eq("id", user.id);
       if (error) throw error;
+    },
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["profile"] });
