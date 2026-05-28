@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { formatDateBR } from "@/lib/formatters";
 
 const setores = ["Mecanização", "Técnico", "Administrativo", "Manutenção", "Campo", "Precisão"];
 const statusColor: Record<string, string> = {
@@ -197,7 +198,7 @@ export default function Funcionarios() {
               </div>
               <div className="grid grid-cols-2 gap-3 mt-4 text-xs">
                 {f.setor && <div className="flex items-center gap-1.5 text-muted-foreground"><Briefcase className="w-3.5 h-3.5" /> {f.setor}</div>}
-                {f.data_admissao && <div className="flex items-center gap-1.5 text-muted-foreground"><Calendar className="w-3.5 h-3.5" /> {new Date(f.data_admissao).toLocaleDateString("pt-BR")}</div>}
+                {f.data_admissao && <div className="flex items-center gap-1.5 text-muted-foreground"><Calendar className="w-3.5 h-3.5" /> {formatDateBR(f.data_admissao)}</div>}
                 {f.telefone && <div className="flex items-center gap-1.5 text-muted-foreground"><Phone className="w-3.5 h-3.5" /> {f.telefone}</div>}
                 {f.produtividade_percentual != null && <div className="flex items-center gap-1.5 text-muted-foreground"><Star className="w-3.5 h-3.5" /> {f.produtividade_percentual}% prod.</div>}
               </div>
