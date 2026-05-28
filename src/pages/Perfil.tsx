@@ -105,7 +105,6 @@ export default function Perfil() {
         .eq("id", user.id);
       if (error) throw error;
     },
-    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["profile"] });
       toast({ title: "Perfil atualizado com sucesso!" });
