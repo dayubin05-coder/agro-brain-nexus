@@ -9,6 +9,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { formatDayMonthBR, formatWeekdayShortBR } from "@/lib/formatters";
 
 export default function Clima() {
   const { data: userData } = useCurrentUser();
