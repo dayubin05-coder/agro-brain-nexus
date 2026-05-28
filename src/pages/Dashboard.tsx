@@ -14,15 +14,11 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useCurrentUser } from "@/hooks/use-current-user";
+import { formatBRLk, formatBRLPlain } from "@/lib/formatters";
 export default function Dashboard() {
   // Fetch current user
-  const { data: userData } = useQuery({
-    queryKey: ["user"],
-    queryFn: async () => {
-      const { data } = await supabase.auth.getUser();
-      return data.user;
-    },
-  });
+  const { data: userData } = useCurrentUser();
 
   // Fetch total planted area from plantios
   const { data: plantiosData, isLoading: loadingPlantios } = useQuery({
