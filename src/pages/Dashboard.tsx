@@ -498,7 +498,7 @@ export default function Dashboard() {
                       <span className={`text-sm font-semibold ${
                         t.tipo === 'receita' ? 'text-success' : 'text-destructive'
                       }`}>
-                        {t.tipo === 'receita' ? '+' : '-'}R$ {Number(t.valor).toLocaleString('pt-BR')}
+                        {t.tipo === 'receita' ? '+' : '-'}{formatBRLPlain(Number(t.valor))}
                       </span>
                     </div>
                   ))}
