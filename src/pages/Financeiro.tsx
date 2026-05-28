@@ -228,10 +228,11 @@ export default function Financeiro() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">{t.descricao}</p>
-                    <p className="text-xs text-muted-foreground">{new Date(t.data).toLocaleDateString("pt-BR")} · {t.categoria || "Sem categoria"}</p>
+                    <p className="text-xs text-muted-foreground">{formatDateBR(t.data)} · {t.categoria || "Sem categoria"}</p>
                   </div>
                   <span className={`text-sm font-semibold ${t.tipo === "receita" ? "text-success" : "text-destructive"}`}>
-                    {t.tipo === "receita" ? "+" : "-"} R$ {Number(t.valor).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    {t.tipo === "receita" ? "+" : "-"} {formatBRL(Number(t.valor))}
+                  </span>
                   </span>
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button onClick={() => openEdit(t)} className="text-muted-foreground hover:text-primary"><Pencil className="w-3.5 h-3.5" /></button>
