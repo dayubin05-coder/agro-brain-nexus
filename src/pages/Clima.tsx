@@ -66,13 +66,13 @@ export default function Clima() {
   if (weatherData?.daily) {
     weatherData.daily.precipitation_sum.forEach((precip: number, i: number) => {
       if (precip > 40) {
-        const date = new Date(weatherData.daily.time[i] + "T12:00:00");
         alerts.push({
           tipo: "Chuva forte prevista",
           desc: `Previsão de ${Math.round(precip)}mm. Possibilidade de alagamento em áreas baixas.`,
           severidade: "alta",
-          data: date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
+          data: formatDayMonthBR(weatherData.daily.time[i] + "T12:00:00"),
         });
+      }
       }
     });
     weatherData.daily.temperature_2m_min.forEach((min: number, i: number) => {
