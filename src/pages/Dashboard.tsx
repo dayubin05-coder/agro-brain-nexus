@@ -328,8 +328,8 @@ export default function Dashboard() {
             <MetricCard 
               icon={DollarSign} 
               title="Saldo Financeiro" 
-              value={saldo >= 0 ? `R$ ${(saldo/1000).toFixed(1)}k` : `-R$ ${(Math.abs(saldo)/1000).toFixed(1)}k`} 
-              change={`Receitas: R$ ${(receitas/1000).toFixed(1)}k`} 
+              value={formatBRLk(saldo)} 
+              change={`Receitas: ${formatBRLk(receitas)}`} 
               changeType={saldo >= 0 ? "positive" : "negative"} 
               delay={0.1} 
             />
@@ -469,7 +469,7 @@ export default function Dashboard() {
                     <YAxis dataKey="categoria" type="category" tick={{ fontSize: 11, fill: "hsl(160, 10%, 45%)" }} width={80} />
                     <Tooltip 
                       contentStyle={{ background: "hsl(0, 0%, 100%)", border: "1px solid hsl(150, 10%, 88%)", borderRadius: "8px", fontSize: "12px" }} 
-                      formatter={(value: number) => [`R$ ${value.toLocaleString('pt-BR')}`, 'Valor']}
+                      formatter={(value: number) => [formatBRLPlain(value), 'Valor']}
                     />
                     <Bar dataKey="valor" fill="hsl(152, 55%, 28%)" radius={[0, 6, 6, 0]} name="Valor" />
                   </BarChart>
@@ -548,7 +548,7 @@ export default function Dashboard() {
             <MetricCard 
               icon={TrendingUp} 
               title="Receitas" 
-              value={`R$ ${(receitas/1000).toFixed(1)}k`} 
+              value={formatBRLk(receitas)} 
               change="Total do período" 
               changeType="positive" 
               delay={0.5} 
@@ -556,7 +556,7 @@ export default function Dashboard() {
             <MetricCard 
               icon={Bug} 
               title="Despesas" 
-              value={`R$ ${(despesas/1000).toFixed(1)}k`} 
+              value={formatBRLk(despesas)} 
               change="Total do período" 
               changeType="neutral" 
               delay={0.55} 
