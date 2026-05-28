@@ -12,6 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TalhoesManager from "@/components/TalhoesManager";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { formatNumberBR } from "@/lib/formatters";
 
 // Fix default marker icon
 import icon from "leaflet/dist/images/marker-icon.png";
@@ -138,7 +139,7 @@ export default function TalhoesDashboard() {
 
   const statCards = [
     { label: "Total de Talhões", value: filtered.length, icon: Layers, color: "text-primary" },
-    { label: "Área Total", value: `${totalArea.toLocaleString("pt-BR")} ha`, icon: Ruler, color: "text-secondary" },
+    { label: "Área Total", value: `${formatNumberBR(totalArea)} ha`, icon: Ruler, color: "text-secondary" },
     { label: "Com Plantio Ativo", value: filtered.filter((t) => t.plantios_count > 0).length, icon: Sprout, color: "text-success" },
     { label: "Mapeados (GPS)", value: withCoords.length, icon: MapPin, color: "text-info" },
   ];

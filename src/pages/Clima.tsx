@@ -9,6 +9,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { formatDayMonthBR, formatWeekdayShortBR } from "@/lib/formatters";
 
 export default function Clima() {
   const { data: userData } = useCurrentUser();
@@ -54,7 +55,7 @@ export default function Clima() {
 
   // Build daily precipitation chart data
   const precipChartData = weatherData?.daily?.time?.map((date: string, i: number) => ({
-    dia: new Date(date + "T12:00:00").toLocaleDateString("pt-BR", { weekday: "short" }),
+    dia: formatWeekdayShortBR(date),
     valor: Math.round(weatherData.daily.precipitation_sum[i]),
   })) || [];
 
@@ -65,34 +66,31 @@ export default function Clima() {
   if (weatherData?.daily) {
     weatherData.daily.precipitation_sum.forEach((precip: number, i: number) => {
       if (precip > 40) {
-        const date = new Date(weatherData.daily.time[i] + "T12:00:00");
         alerts.push({
           tipo: "Chuva forte prevista",
           desc: `Previsão de ${Math.round(precip)}mm. Possibilidade de alagamento em áreas baixas.`,
           severidade: "alta",
-          data: date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
+          data: formatDayMonthBR(weatherData.daily.time[i] + "T12:00:00"),
         });
       }
     });
     weatherData.daily.temperature_2m_min.forEach((min: number, i: number) => {
       if (min < 5) {
-        const date = new Date(weatherData.daily.time[i] + "T12:00:00");
         alerts.push({
           tipo: "Risco de geada",
           desc: `Temperatura mínima prevista de ${Math.round(min)}°C. Proteja culturas sensíveis.`,
           severidade: "alta",
-          data: date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
+          data: formatDayMonthBR(weatherData.daily.time[i] + "T12:00:00"),
         });
       }
     });
     weatherData.daily.temperature_2m_max.forEach((max: number, i: number) => {
       if (max > 38) {
-        const date = new Date(weatherData.daily.time[i] + "T12:00:00");
         alerts.push({
           tipo: "Calor extremo",
           desc: `Temperatura máxima de ${Math.round(max)}°C. Atenção ao estresse hídrico das culturas.`,
           severidade: "media",
-          data: date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
+          data: formatDayMonthBR(weatherData.daily.time[i] + "T12:00:00"),
         });
       }
     });

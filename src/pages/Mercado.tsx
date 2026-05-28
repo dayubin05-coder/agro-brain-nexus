@@ -8,6 +8,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { formatBRL } from "@/lib/formatters";
 
 interface Commodity {
   nome: string;
@@ -94,7 +95,7 @@ export default function Mercado() {
                 key={c.nome}
                 icon={c.tipo === "positiva" ? TrendingUp : TrendingDown}
                 title={c.nome.split(" (")[0]}
-                value={`R$ ${parseFloat(c.preco).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+                value={formatBRL(parseFloat(c.preco))}
                 change={`${c.variacao} esta semana`}
                 changeType={c.tipo === "positiva" ? "positive" : "negative"}
                 delay={i * 0.1}
@@ -123,7 +124,7 @@ export default function Mercado() {
                   </span>
                 </div>
                 <p className="text-2xl font-display font-bold text-foreground">
-                  R$ {parseFloat(c.preco).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                  {formatBRL(parseFloat(c.preco))}
                 </p>
                 <div className="mt-3 pt-3 border-t border-border space-y-1">
                   <p className="text-xs text-muted-foreground">Tendência: <span className="text-foreground font-medium">{c.tendencia}</span></p>
