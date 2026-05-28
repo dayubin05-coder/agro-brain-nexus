@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import MetricCard from "@/components/MetricCard";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 const categorias = ["Todos", "Venda", "Serviço", "Máquina", "Transporte", "Consultoria"];
 
@@ -39,20 +40,19 @@ export default function Marketplace() {
     },
   });
 
+  const { data: user } = useCurrentUser();
   const { data: minhasVendas } = useQuery({
-    queryKey: ["minhas-vendas"],
+    queryKey: ["minhas-vendas", user?.id],
+    enabled: !!user,
     queryFn: async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) return [];
       const { data, error } = await supabase
         .from("marketplace_anuncios")
         .select("*, marketplace_propostas(id, valor, status)")
-        .eq("user_id", userData.user.id);
+        .eq("user_id", user!.id);
       if (error) throw error;
       return data;
     },
   });
-
   return (
     <div className="space-y-6">
       <div>

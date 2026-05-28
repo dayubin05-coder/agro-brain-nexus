@@ -21,6 +21,16 @@ export const formatBRLCompact = (value: number): string => {
 export const formatBRLKilo = (value: number): string =>
   `R$ ${(value / 1000).toFixed(0)}K`;
 
+/** Compact kilos with 1 decimal (lowercase k), signed: R$ 1.2k / -R$ 3.4k */
+export const formatBRLk = (value: number): string =>
+  value >= 0
+    ? `R$ ${(value / 1000).toFixed(1)}k`
+    : `-R$ ${(Math.abs(value) / 1000).toFixed(1)}k`;
+
+/** Plain BRL using thousands separator with no fixed fraction digits */
+export const formatBRLPlain = (value: number): string =>
+  `R$ ${Number(value).toLocaleString("pt-BR")}`;
+
 export const formatDateBR = (date: string | Date): string =>
   new Date(date).toLocaleDateString("pt-BR");
 
