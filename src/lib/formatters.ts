@@ -30,12 +30,12 @@ export const formatBRLk = (value: number): string =>
 /** Plain BRL using thousands separator with no fixed fraction digits */
 export const formatBRLPlain = (value: number): string =>
   `R$ ${Number(value).toLocaleString("pt-BR")}`;
-export const formatBRLPlain = (value: number): string =>
-  `R$ ${Number(value).toLocaleString("pt-BR")}`;
 
 /** Plain pt-BR number with thousands separator (no currency symbol) */
 export const formatNumberBR = (value: number): string =>
   Number(value).toLocaleString("pt-BR");
+
+
 export const formatDateBR = (date: string | Date): string =>
   new Date(date).toLocaleDateString("pt-BR");
 
