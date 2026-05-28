@@ -12,6 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TalhoesManager from "@/components/TalhoesManager";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { formatNumberBR } from "@/lib/formatters";
 
 // Fix default marker icon
 import icon from "leaflet/dist/images/marker-icon.png";
