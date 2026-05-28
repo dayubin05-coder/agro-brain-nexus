@@ -94,7 +94,7 @@ export default function Mercado() {
               <MetricCard
                 key={c.nome}
                 icon={c.tipo === "positiva" ? TrendingUp : TrendingDown}
-                title={c.nome.split(" (")[0]}
+                value={formatBRL(parseFloat(c.preco))}
                 value={`R$ ${parseFloat(c.preco).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
                 change={`${c.variacao} esta semana`}
                 changeType={c.tipo === "positiva" ? "positive" : "negative"}
