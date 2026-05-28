@@ -25,7 +25,6 @@ export default function NotificationsPanel({ open, onClose }: NotificationsPanel
     queryFn: async () => {
       if (!user) return [];
       const alerts: Notification[] = [];
-      const alerts: Notification[] = [];
 
       // Low stock alerts
       const { data: estoque } = await supabase
