@@ -18,11 +18,13 @@ interface NotificationsPanelProps {
 }
 
 export default function NotificationsPanel({ open, onClose }: NotificationsPanelProps) {
+  const { data: user } = useCurrentUser();
   const { data: notifications = [] } = useQuery<Notification[]>({
-    queryKey: ["notifications"],
+    queryKey: ["notifications", user?.id],
+    enabled: !!user,
     queryFn: async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) return [];
+      if (!user) return [];
+      const alerts: Notification[] = [];
       const alerts: Notification[] = [];
 
       // Low stock alerts
