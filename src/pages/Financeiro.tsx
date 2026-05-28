@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { formatBRLCompact, formatDateBR, formatBRL, formatMonthShortBR } from "@/lib/formatters";
 
 const categoriasList = ["Venda", "Insumos", "Mão de obra", "Combustível", "Manutenção", "Logística", "Outros"];
 const emptyForm = { fazenda_id: "", descricao: "", valor: "", tipo: "despesa", data: "", categoria: "" };
@@ -87,13 +88,9 @@ export default function Financeiro() {
     monthlyMap.set(month, entry);
   });
   const chartData = Array.from(monthlyMap.entries()).sort(([a], [b]) => a.localeCompare(b)).slice(-6)
-    .map(([month, data]) => ({ mes: new Date(month + "-15").toLocaleDateString("pt-BR", { month: "short" }), receitas: data.receitas, despesas: data.despesas }));
+    .map(([month, data]) => ({ mes: formatMonthShortBR(month), receitas: data.receitas, despesas: data.despesas }));
 
-  const formatCurrency = (v: number) => {
-    if (Math.abs(v) >= 1000000) return `R$ ${(v / 1000000).toFixed(2)}M`;
-    if (Math.abs(v) >= 1000) return `R$ ${(v / 1000).toFixed(1)}K`;
-    return `R$ ${v.toFixed(2)}`;
-  };
+  const formatCurrency = formatBRLCompact;
 
   const TransactionFormFields = ({ data, setData }: { data: any; setData: (d: any) => void }) => (
     <>
