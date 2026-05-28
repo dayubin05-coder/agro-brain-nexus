@@ -7,9 +7,9 @@ import { Bell, Search, User, LogOut, Settings, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { useQuery } from "@tanstack/react-query";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -34,9 +34,6 @@ export default function AppLayout() {
     select: (data: any[]) => data?.length || 0,
   });
 
-  const { data: profile } = useQuery({
-    queryKey: ["profile"],
-    queryFn: async () => {
   const { data: user } = useCurrentUser();
 
   const { data: profile } = useQuery({
@@ -47,6 +44,9 @@ export default function AppLayout() {
       return data;
     },
   });
+
+  const avatarUrl = profile?.avatar_url
+    ? supabase.storage.from("avatars").getPublicUrl(profile.avatar_url).data.publicUrl
     : null;
 
   const handleLogout = async () => {
