@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { formatDateBR } from "@/lib/formatters";
 
 type ReportType = "financeiro" | "estoque" | "funcionarios" | "pragas" | "plantio";
 
@@ -56,7 +57,7 @@ export default function Relatorios() {
       doc.text(`Relatório de ${typeLabel}`, 14, 22);
       doc.setFontSize(11);
       doc.setTextColor(100);
-      doc.text(`${farmName} — Gerado em ${new Date().toLocaleDateString("pt-BR")}`, 14, 30);
+      doc.text(`${farmName} — Gerado em ${formatDateBR(new Date())}`, 14, 30);
 
       if (!reportData || reportData.length === 0) {
         doc.setFontSize(12);
