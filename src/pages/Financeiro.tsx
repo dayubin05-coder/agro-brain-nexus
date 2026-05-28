@@ -233,7 +233,6 @@ export default function Financeiro() {
                   <span className={`text-sm font-semibold ${t.tipo === "receita" ? "text-success" : "text-destructive"}`}>
                     {t.tipo === "receita" ? "+" : "-"} {formatBRL(Number(t.valor))}
                   </span>
-                  </span>
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button onClick={() => openEdit(t)} className="text-muted-foreground hover:text-primary"><Pencil className="w-3.5 h-3.5" /></button>
                     <button onClick={() => deleteMutation.mutate(t.id)} className="text-muted-foreground hover:text-destructive"><Trash2 className="w-3.5 h-3.5" /></button>
