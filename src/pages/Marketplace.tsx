@@ -40,7 +40,6 @@ export default function Marketplace() {
     },
   });
 
-  const { data: minhasVendas } = useQuery({
   const { data: user } = useCurrentUser();
   const { data: minhasVendas } = useQuery({
     queryKey: ["minhas-vendas", user?.id],
