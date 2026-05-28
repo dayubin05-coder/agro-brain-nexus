@@ -124,7 +124,7 @@ export default function Mercado() {
                   </span>
                 </div>
                 <p className="text-2xl font-display font-bold text-foreground">
-                  R$ {parseFloat(c.preco).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                  {formatBRL(parseFloat(c.preco))}
                 </p>
                 <div className="mt-3 pt-3 border-t border-border space-y-1">
                   <p className="text-xs text-muted-foreground">Tendência: <span className="text-foreground font-medium">{c.tendencia}</span></p>
