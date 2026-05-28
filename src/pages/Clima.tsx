@@ -73,27 +73,24 @@ export default function Clima() {
           data: formatDayMonthBR(weatherData.daily.time[i] + "T12:00:00"),
         });
       }
-      }
     });
     weatherData.daily.temperature_2m_min.forEach((min: number, i: number) => {
       if (min < 5) {
-        const date = new Date(weatherData.daily.time[i] + "T12:00:00");
         alerts.push({
           tipo: "Risco de geada",
           desc: `Temperatura mínima prevista de ${Math.round(min)}°C. Proteja culturas sensíveis.`,
           severidade: "alta",
-          data: date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
+          data: formatDayMonthBR(weatherData.daily.time[i] + "T12:00:00"),
         });
       }
     });
     weatherData.daily.temperature_2m_max.forEach((max: number, i: number) => {
       if (max > 38) {
-        const date = new Date(weatherData.daily.time[i] + "T12:00:00");
         alerts.push({
           tipo: "Calor extremo",
           desc: `Temperatura máxima de ${Math.round(max)}°C. Atenção ao estresse hídrico das culturas.`,
           severidade: "media",
-          data: date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
+          data: formatDayMonthBR(weatherData.daily.time[i] + "T12:00:00"),
         });
       }
     });
