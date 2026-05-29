@@ -10,6 +10,8 @@ import AppLayout from "./components/AppLayout";
 import AuthGuard from "./components/AuthGuard";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { RouteFallback } from "./components/PageSkeleton";
+import { usePageTracking } from "./hooks/use-page-tracking";
+import { RouteFallback } from "./components/PageSkeleton";
 
 // Auth pages (small, eager — needed on first paint when logged out)
 import Login from "./pages/Login";
