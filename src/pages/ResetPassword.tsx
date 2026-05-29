@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { authService } from "@/services/auth.service";
 import { Leaf, Lock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { t } from "@/lib/i18n";
 
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
@@ -22,17 +23,13 @@ export default function ResetPassword() {
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password.length < 8 || !/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) {
-      toast.error("Senha deve ter ao menos 8 caracteres, com letras e números.");
+      toast.error(t("auth.password.weak"));
       return;
     }
     setLoading(true);
-
     try {
-      const { error } = await supabase.auth.updateUser({ password });
-
-      if (error) throw error;
-      
-      toast.success("Senha atualizada com sucesso!");
+      await authService.updatePassword(password);
+      toast.success(t("auth.password.updated"));
       navigate("/login");
     } catch (error: any) {
       toast.error("Erro ao atualizar a senha: " + error.message);
