@@ -5,9 +5,8 @@ import {
   Bot, Camera, Send, Brain, Lightbulb,
   CloudSun, BarChart3, Scan, Loader2, ImagePlus, X,
 } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { agrobrainService, type AgrobrainMsg } from "@/services/agrobrain.service";
 
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/agrobrain-chat`;
 
 const funcionalidades = [
   { icon: Brain, titulo: "Previsão de Safra", desc: "IA analisa dados históricos, clima e solo para prever produtividade" },
