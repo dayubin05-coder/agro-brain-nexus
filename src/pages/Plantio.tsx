@@ -16,6 +16,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { plantioSchema } from "@/lib/schemas";
+import { validateOrToast } from "@/lib/validate";
 
 const produtividadeData = [
   { safra: "20/21", soja: 58, milho: 95 }, { safra: "21/22", soja: 62, milho: 102 },
