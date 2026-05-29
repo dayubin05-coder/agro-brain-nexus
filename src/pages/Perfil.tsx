@@ -42,8 +42,6 @@ export default function Perfil() {
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const file = e.target.files?.[0];
-    if (!file) return;
 
     if (!file.type.startsWith("image/")) {
       toast({ title: "Formato inválido", description: "Selecione uma imagem (JPG, PNG, etc.)", variant: "destructive" });
