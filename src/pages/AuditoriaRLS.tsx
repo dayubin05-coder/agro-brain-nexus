@@ -23,39 +23,20 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 
-interface TableSecurityStatus {
-
 export default function AuditoriaRLS() {
   const [search, setSearch] = useState("");
   const [showTableStatus, setShowTableStatus] = useState(false);
 
-  // Fetch real-time security status for tables
   const { data: tableStatus, isLoading: isLoadingStatus } = useQuery({
     queryKey: ["tables-security-audit"],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_tables_rls_status');
-      if (error) throw error;
-      return data as TableSecurityStatus[];
-    }
+    queryFn: auditoriaService.getTablesRlsStatus,
   });
 
   const { data: reports, isLoading: isLoadingReports } = useQuery({
     queryKey: ["security-audit-reports"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("security_audit_reports")
-        .select("*")
-        .order("created_at", { ascending: false });
-      
-      if (error) throw error;
-      return data;
-    }
+    queryFn: auditoriaService.listReports,
   });
 
-  const filteredReports = reports?.filter(r => 
-    r.titulo.toLowerCase().includes(search.toLowerCase()) || 
-    r.resumo?.toLowerCase().includes(search.toLowerCase())
-  );
 
   const stats = {
     total: tableStatus?.length || 0,
