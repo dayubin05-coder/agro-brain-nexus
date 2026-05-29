@@ -2,7 +2,8 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { MapPin, Plus, MoreVertical, Sprout, Ruler, Calendar, Loader2, Pencil, Trash2, Layers } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { fazendasService } from "@/services/fazendas.service";
+import { qk } from "@/lib/queryKeys";
 import { useToast } from "@/hooks/use-toast";
 import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger,
