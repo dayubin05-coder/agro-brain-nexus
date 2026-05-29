@@ -4,7 +4,10 @@ import { Sprout, Calendar, TrendingUp, Wheat, Plus, Leaf, Loader2, Trash2, Penci
 import MetricCard from "@/components/MetricCard";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { plantiosService } from "@/services/plantios.service";
+import { culturasService } from "@/services/culturas.service";
+import { talhoesService } from "@/services/talhoes.service";
+import { qk } from "@/lib/queryKeys";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
