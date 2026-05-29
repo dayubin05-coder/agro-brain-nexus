@@ -166,13 +166,11 @@ export function FarmMap({ fazendas }: FarmMapProps) {
     }
     try {
       setIsSaving(true);
-      const { error } = await supabase.from('talhoes').insert({
+      await talhoesService.create(newTalhao.fazenda_id, {
         nome: newTalhao.nome,
         area: Number(newTalhao.area),
-        fazenda_id: newTalhao.fazenda_id,
-        coordenadas: currentCoords
+        coordenadas: currentCoords,
       });
-      if (error) throw error;
       toast({ title: "Talhão salvo com sucesso!" });
       queryClient.invalidateQueries({ queryKey: ["fazendas"] });
       if (currentLayer) currentLayer.remove();
