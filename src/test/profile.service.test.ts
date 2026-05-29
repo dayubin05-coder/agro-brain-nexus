@@ -10,7 +10,7 @@ const fromMock: any = vi.fn(() => ({ select: selectMock, update: updateMock }));
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
-    from: (table: string) => fromMock(table),
+    from: (table: string) => (fromMock as any)(table),
   },
 }));
 
