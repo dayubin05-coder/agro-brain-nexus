@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { User, Mail, Phone, Camera, Loader2, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,7 @@ import { motion } from "framer-motion";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { profileSchema } from "@/lib/schemas";
 import { validateOrToast } from "@/lib/validate";
+import { profileService } from "@/services/profile.service";
 export default function Perfil() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -22,15 +22,7 @@ export default function Perfil() {
   const { data: profile, isLoading } = useQuery({
     queryKey: ["profile", user?.id],
     enabled: !!user,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user!.id)
-        .single();
-      if (error) throw error;
-      return data;
-    },
+    queryFn: () => profileService.getFullById(user!.id),
   });
 
   useEffect(() => {
@@ -44,11 +36,8 @@ export default function Perfil() {
     }
   }, [profile]);
 
-  const getAvatarUrl = (path: string | null) => {
-    if (!path) return null;
-    const { data } = supabase.storage.from("avatars").getPublicUrl(path);
-    return data.publicUrl;
-  };
+  const getAvatarUrl = (path: string | null) =>
+    path ? profileService.getAvatarPublicUrl(path) : null;
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -66,27 +55,7 @@ export default function Perfil() {
     try {
       setUploading(true);
       if (!user) throw new Error("Not authenticated");
-
-      const userId = user.id;
-      const ext = file.name.split(".").pop();
-      const filePath = `${userId}/avatar.${ext}`;
-
-      // Remove old avatar if exists
-      if (profile?.avatar_url) {
-        await supabase.storage.from("avatars").remove([profile.avatar_url]);
-      }
-
-      const { error: uploadError } = await supabase.storage
-        .from("avatars")
-        .upload(filePath, file, { upsert: true });
-      if (uploadError) throw uploadError;
-
-      const { error: updateError } = await supabase
-        .from("profiles")
-        .update({ avatar_url: filePath })
-        .eq("id", userId);
-      if (updateError) throw updateError;
-
+      await profileService.uploadAvatar(user.id, file, profile?.avatar_url ?? null);
       queryClient.invalidateQueries({ queryKey: ["profile"] });
       toast({ title: "Avatar atualizado com sucesso!" });
     } catch (err: any) {
@@ -100,11 +69,7 @@ export default function Perfil() {
   const updateMutation = useMutation({
     mutationFn: async (data: typeof form) => {
       if (!user) throw new Error("Not authenticated");
-      const { error } = await supabase
-        .from("profiles")
-        .update({ nome: data.nome, telefone: data.telefone, tipo: data.tipo })
-        .eq("id", user.id);
-      if (error) throw error;
+      await profileService.update(user.id, { nome: data.nome, telefone: data.telefone, tipo: data.tipo });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["profile"] });
