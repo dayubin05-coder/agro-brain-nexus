@@ -49,6 +49,11 @@ const queryClient = new QueryClient({
   },
 });
 
+const RouteTracker = () => {
+  usePageTracking();
+  return null;
+};
+
 const App = () => (
   <ThemeProvider>
     <QueryClientProvider client={queryClient}>
