@@ -24,11 +24,6 @@ import { ptBR } from "date-fns/locale";
 
 
 interface TableSecurityStatus {
-  table_name: string;
-  rls_enabled: boolean;
-  policy_count: number;
-  evaluation: "Conforme" | "Parcial" | "Vulnerável";
-}
 
 export default function AuditoriaRLS() {
   const [search, setSearch] = useState("");
