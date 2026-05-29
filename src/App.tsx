@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "./components/ThemeProvider";
+import { AuthProvider } from "./contexts/AuthContext";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AppLayout from "./components/AppLayout";
 import Dashboard from "./pages/Dashboard";
@@ -47,33 +48,35 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <AuthGuard>
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route element={<AppLayout />}>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/fazendas" element={<Fazendas />} />
-                <Route path="/talhoes" element={<Talhoes />} />
-                <Route path="/plantio" element={<Plantio />} />
-                <Route path="/financeiro" element={<Financeiro />} />
-                <Route path="/estoque" element={<Estoque />} />
-                <Route path="/maquinas" element={<Maquinas />} />
-                <Route path="/funcionarios" element={<Funcionarios />} />
-                <Route path="/clima" element={<Clima />} />
-                <Route path="/pragas" element={<Pragas />} />
-                <Route path="/mercado" element={<Mercado />} />
-                <Route path="/marketplace" element={<Marketplace />} />
-                <Route path="/ia" element={<IAAgricola />} />
-                <Route path="/sustentabilidade" element={<Sustentabilidade />} />
-                <Route path="/perfil" element={<Perfil />} />
-                <Route path="/relatorios" element={<Relatorios />} />
-                <Route path="/auditoria-rls" element={<AuditoriaRLS />} />
-              </Route>
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AuthGuard>
+          <AuthProvider>
+            <AuthGuard>
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route element={<AppLayout />}>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/fazendas" element={<Fazendas />} />
+                  <Route path="/talhoes" element={<Talhoes />} />
+                  <Route path="/plantio" element={<Plantio />} />
+                  <Route path="/financeiro" element={<Financeiro />} />
+                  <Route path="/estoque" element={<Estoque />} />
+                  <Route path="/maquinas" element={<Maquinas />} />
+                  <Route path="/funcionarios" element={<Funcionarios />} />
+                  <Route path="/clima" element={<Clima />} />
+                  <Route path="/pragas" element={<Pragas />} />
+                  <Route path="/mercado" element={<Mercado />} />
+                  <Route path="/marketplace" element={<Marketplace />} />
+                  <Route path="/ia" element={<IAAgricola />} />
+                  <Route path="/sustentabilidade" element={<Sustentabilidade />} />
+                  <Route path="/perfil" element={<Perfil />} />
+                  <Route path="/relatorios" element={<Relatorios />} />
+                  <Route path="/auditoria-rls" element={<AuditoriaRLS />} />
+                </Route>
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </AuthGuard>
+          </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
