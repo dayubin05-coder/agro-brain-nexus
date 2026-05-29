@@ -5,10 +5,12 @@ import ThemeToggle from "./ThemeToggle";
 import NotificationsPanel from "./NotificationsPanel";
 import { Bell, Search, User, LogOut, Settings, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
+import { profileService } from "@/services/profile.service";
+import { authService } from "@/services/auth.service";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { useQuery } from "@tanstack/react-query";
+import { qk } from "@/lib/queryKeys";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,27 +32,24 @@ export default function AppLayout() {
   const isMobile = useIsMobile();
 
   const { data: notifCount = 0 } = useQuery({
-    queryKey: ["notifications"],
+    queryKey: qk.notifications(),
     select: (data: any[]) => data?.length || 0,
   });
 
   const { data: user } = useCurrentUser();
 
   const { data: profile } = useQuery({
-    queryKey: ["profile", user?.id],
+    queryKey: qk.profile(user?.id),
     enabled: !!user,
-    queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("nome, tipo, avatar_url").eq("id", user!.id).single();
-      return data;
-    },
+    queryFn: () => profileService.getById(user!.id),
   });
 
   const avatarUrl = profile?.avatar_url
-    ? supabase.storage.from("avatars").getPublicUrl(profile.avatar_url).data.publicUrl
+    ? profileService.getAvatarPublicUrl(profile.avatar_url)
     : null;
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await authService.signOut();
     navigate("/login");
   };
 
