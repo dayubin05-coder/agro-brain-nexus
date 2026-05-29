@@ -27,7 +27,21 @@ export default function Perfil() {
 
   useEffect(() => {
     if (profile) {
+      setForm({
+        nome: profile.nome || "",
+        email: profile.email || "",
+        telefone: profile.telefone || "",
+        tipo: profile.tipo || "produtor",
+      });
+    }
+  }, [profile]);
+
+  const getAvatarUrl = (path: string | null) =>
+    path ? profileService.getAvatarPublicUrl(path) : null;
+
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
     const file = e.target.files?.[0];
     if (!file) return;
 
