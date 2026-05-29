@@ -10,9 +10,6 @@ import { motion } from "framer-motion";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { profileSchema } from "@/lib/schemas";
 import { validateOrToast } from "@/lib/validate";
-import { useCurrentUser } from "@/hooks/use-current-user";
-import { profileSchema } from "@/lib/schemas";
-import { validateOrToast } from "@/lib/validate";
 export default function Perfil() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
