@@ -115,6 +115,8 @@ export default function Perfil() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const parsed = validateOrToast(profileSchema, form);
+    if (!parsed) return;
     updateMutation.mutate(form);
   };
 
