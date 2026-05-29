@@ -56,14 +56,36 @@ const queryClient = new QueryClient({
 const RouteTracker = () => {
   usePageTracking();
   return null;
+const RouteTracker = () => {
+  usePageTracking();
+  return null;
+};
+
+const OnlineReplay = () => {
+  useEffect(() => {
+    const handler = () => void replayQueue();
+    window.addEventListener("online", handler);
+    if (navigator.onLine) void replayQueue();
+    return () => window.removeEventListener("online", handler);
+  }, []);
+  return null;
 };
 
 const App = () => (
   <ThemeProvider>
-    <QueryClientProvider client={queryClient}>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{
+        persister: idbPersister,
+        maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+        buster: "v1",
+      }}
+    >
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <OfflineIndicator />
+        <OnlineReplay />
         <BrowserRouter>
           <AuthProvider>
             <AuthGuard>
@@ -101,7 +123,7 @@ const App = () => (
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
-    </QueryClientProvider>
+    </PersistQueryClientProvider>
   </ThemeProvider>
 );
 
