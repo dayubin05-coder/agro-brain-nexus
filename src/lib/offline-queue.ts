@@ -59,10 +59,10 @@ export async function replayQueue() {
       await fn(item);
       await offlineQueue.remove(item.id);
     } catch (err) {
-      logger.error("offline.replay.failed", err, { kind: item.kind });
-      // stop on first failure to preserve order
-    } catch (err) {
       logger.error(err, "offline.replay", { kind: item.kind });
       // stop on first failure to preserve order
       break;
     }
+  }
+  logger.info("offline.replay.done");
+}
