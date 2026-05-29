@@ -126,7 +126,7 @@ export default function IAAgricola() {
     };
 
     try {
-      await streamChat({
+      await agrobrainService.streamChat({
         messages: allMessages,
         onDelta: upsertAssistant,
         onDone: () => setIsLoading(false),
