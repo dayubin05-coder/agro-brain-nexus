@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { climaService } from "@/services/clima.service";
 import { motion } from "framer-motion";
 import {
   CloudSun, Droplets, Wind, Thermometer, Sun, Cloud, CloudRain,
@@ -32,13 +32,7 @@ interface WeatherWidgetProps {
 export default function WeatherWidget({ latitude, longitude, farmName, compact = false }: WeatherWidgetProps) {
   const { data: weather, isLoading, error } = useQuery({
     queryKey: ["weather", latitude, longitude],
-    queryFn: async () => {
-      const { data, error } = await supabase.functions.invoke("weather", {
-        body: { latitude, longitude },
-      });
-      if (error) throw error;
-      return data;
-    },
+    queryFn: () => climaService.fetchWeather(latitude, longitude),
     staleTime: 30 * 60 * 1000, // 30 min cache
     retry: 1,
   });
