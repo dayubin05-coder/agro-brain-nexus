@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Leaf, Mail, Lock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { loginSchema, resetPasswordSchema } from "@/lib/schemas";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -12,13 +13,16 @@ export default function Login() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    const parsed = loginSchema.safeParse({ email, password });
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0]?.message ?? "Dados inválidos");
+      return;
+    }
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { error } = await supabase.auth.signInWithPassword({ email: parsed.data.email, password: parsed.data.password });
+
 
       if (error) throw error;
       navigate("/");
@@ -32,13 +36,13 @@ export default function Login() {
   };
 
   const handleResetPassword = async () => {
-    if (!email) {
-      toast.warning("Digite seu email primeiro para resetar a senha");
+    const parsed = resetPasswordSchema.safeParse({ email });
+    if (!parsed.success) {
+      toast.warning(parsed.error.issues[0]?.message ?? "E-mail inválido");
       return;
     }
-    
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
       if (error) throw error;
@@ -47,6 +51,8 @@ export default function Login() {
       toast.error("Erro ao enviar email de recuperação.");
     }
   };
+
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
