@@ -4,7 +4,8 @@ import { DollarSign, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, Wal
 import MetricCard from "@/components/MetricCard";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { financeiroService } from "@/services/financeiro.service";
+import { qk } from "@/lib/queryKeys";
 import { useUserFazendas } from "@/hooks/use-user-fazendas";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -26,39 +27,25 @@ export default function Financeiro() {
   const [form, setForm] = useState(emptyForm);
 
   const { data: transacoes, isLoading } = useQuery({
-    queryKey: ["financeiro-real"],
+    queryKey: qk.financeiro(userData?.id),
     enabled: !!userData,
-    queryFn: async () => {
-      const { data, error } = await supabase.from("transacoes_financeiras").select("*, fazendas!inner(user_id, nome)").eq("fazendas.user_id", userData!.id).order("data", { ascending: false });
-      if (error) throw error;
-      return data;
-    },
+    queryFn: () => financeiroService.listByUser(userData!.id),
   });
 
   const addMutation = useMutation({
-    mutationFn: async (f: typeof form) => {
-      const { error } = await supabase.from("transacoes_financeiras").insert([{
-        fazenda_id: f.fazenda_id, descricao: f.descricao.trim(), valor: Number(f.valor), tipo: f.tipo, data: f.data, categoria: f.categoria || null,
-      }]);
-      if (error) throw error;
-    },
+    mutationFn: (f: typeof form) => financeiroService.create(f),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["financeiro-real"] }); toast({ title: "Transação registrada" }); setIsAddOpen(false); setForm(emptyForm); },
     onError: (e) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (item: any) => {
-      const { error } = await supabase.from("transacoes_financeiras").update({
-        descricao: item.descricao.trim(), valor: Number(item.valor), tipo: item.tipo, data: item.data, categoria: item.categoria || null,
-      }).eq("id", item.id);
-      if (error) throw error;
-    },
+    mutationFn: (item: any) => financeiroService.update(item.id, item),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["financeiro-real"] }); toast({ title: "Transação atualizada" }); setEditingItem(null); },
     onError: (e) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: string) => { const { error } = await supabase.from("transacoes_financeiras").delete().eq("id", id); if (error) throw error; },
+    mutationFn: (id: string) => financeiroService.remove(id),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["financeiro-real"] }); toast({ title: "Transação removida" }); },
     onError: (e) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
   });

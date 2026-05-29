@@ -2,7 +2,8 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { MapPin, Plus, MoreVertical, Sprout, Ruler, Calendar, Loader2, Pencil, Trash2, Layers } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { fazendasService } from "@/services/fazendas.service";
+import { qk } from "@/lib/queryKeys";
 import { useToast } from "@/hooks/use-toast";
 import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger,
@@ -31,27 +32,15 @@ export default function Fazendas() {
   const { data: user } = useCurrentUser();
 
   const { data: fazendas, isLoading } = useQuery({
-    queryKey: ["fazendas", user?.id],
+    queryKey: qk.fazendas(user?.id),
     enabled: !!user,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("fazendas")
-        .select(`*, talhoes (id, nome, area, coordenadas)`)
-        .eq('user_id', user!.id)
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      return data;
-    },
+    queryFn: () => fazendasService.listByUser(user!.id),
   });
 
   const addFarmMutation = useMutation({
-    mutationFn: async (farmData: typeof newFarm) => {
+    mutationFn: (farmData: typeof newFarm) => {
       if (!user) throw new Error("Not authenticated");
-      const { error } = await supabase.from("fazendas").insert([{
-        nome: farmData.nome, cidade: farmData.cidade, estado: farmData.estado,
-        area_total: Number(farmData.area_total), user_id: user.id,
-      }]);
-      if (error) throw error;
+      return fazendasService.create(user.id, farmData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["fazendas"] });
@@ -63,13 +52,7 @@ export default function Fazendas() {
   });
 
   const updateFarmMutation = useMutation({
-    mutationFn: async (farm: any) => {
-      const { error } = await supabase.from("fazendas").update({
-        nome: farm.nome, cidade: farm.cidade, estado: farm.estado,
-        area_total: Number(farm.area_total),
-      }).eq("id", farm.id);
-      if (error) throw error;
-    },
+    mutationFn: (farm: any) => fazendasService.update(farm.id, farm),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["fazendas"] });
       toast({ title: "Fazenda atualizada" });
@@ -79,10 +62,7 @@ export default function Fazendas() {
   });
 
   const deleteFarmMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("fazendas").delete().eq("id", id);
-      if (error) throw error;
-    },
+    mutationFn: (id: string) => fazendasService.remove(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["fazendas"] });
       toast({ title: "Fazenda removida" });

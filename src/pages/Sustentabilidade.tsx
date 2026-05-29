@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { sustentabilidadeService } from "@/services/sustentabilidade.service";
+import { qk } from "@/lib/queryKeys";
 import { useToast } from "@/hooks/use-toast";
 import { useUserFazendas } from "@/hooks/use-user-fazendas";
 import { Leaf, Droplets, Zap, Recycle, Plus, Loader2, TrendingUp, TrendingDown, Target, Trash2 } from "lucide-react";
@@ -47,31 +48,18 @@ export default function Sustentabilidade() {
   const [form, setForm] = useState(emptyForm);
 
   const { data: registros, isLoading } = useQuery({
-    queryKey: ["sustentabilidade"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("sustentabilidade_registros")
-        .select("*, fazendas(nome)")
-        .order("data", { ascending: false });
-      if (error) throw error;
-      return data;
-    },
+    queryKey: qk.sustentabilidade(),
+    queryFn: () => sustentabilidadeService.list(),
   });
 
   const addMutation = useMutation({
-    mutationFn: async (formData: typeof form) => {
-      const { error } = await supabase.from("sustentabilidade_registros").insert([{
-        fazenda_id: formData.fazenda_id, categoria: formData.categoria, indicador: formData.indicador,
-        valor: Number(formData.valor), unidade: formData.unidade, meta: formData.meta ? Number(formData.meta) : null, observacoes: formData.observacoes || null,
-      }]);
-      if (error) throw error;
-    },
+    mutationFn: (formData: typeof form) => sustentabilidadeService.create(formData),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["sustentabilidade"] }); toast({ title: "Registro adicionado" }); setIsAddOpen(false); setForm(emptyForm); },
     onError: (err) => toast({ title: "Erro", description: err.message, variant: "destructive" }),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: string) => { const { error } = await supabase.from("sustentabilidade_registros").delete().eq("id", id); if (error) throw error; },
+    mutationFn: (id: string) => sustentabilidadeService.remove(id),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["sustentabilidade"] }); toast({ title: "Registro removido" }); },
     onError: (e) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
   });

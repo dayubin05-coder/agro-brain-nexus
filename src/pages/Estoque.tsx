@@ -3,7 +3,8 @@ import { motion } from "framer-motion";
 import { Package, AlertTriangle, Plus, Search, Loader2, Trash2, Pencil } from "lucide-react";
 import MetricCard from "@/components/MetricCard";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { estoqueService } from "@/services/estoque.service";
+import { qk } from "@/lib/queryKeys";
 import { useUserFazendas } from "@/hooks/use-user-fazendas";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -25,46 +26,25 @@ export default function Estoque() {
   const [form, setForm] = useState(emptyForm);
 
   const { data: estoque, isLoading } = useQuery({
-    queryKey: ["estoque-real"],
+    queryKey: qk.estoque(userData?.id),
     enabled: !!userData,
-    queryFn: async () => {
-      const { data, error } = await supabase.from("estoque").select("*, fazendas!inner(user_id, nome)").eq("fazendas.user_id", userData!.id).order("nome");
-      if (error) throw error;
-      return data;
-    },
+    queryFn: () => estoqueService.listByUser(userData!.id),
   });
 
   const addMutation = useMutation({
-    mutationFn: async (f: typeof form) => {
-      const { error } = await supabase.from("estoque").insert([{
-        fazenda_id: f.fazenda_id, nome: f.nome.trim(), categoria: f.categoria || null,
-        quantidade: Number(f.quantidade), unidade: f.unidade,
-        quantidade_minima: f.quantidade_minima ? Number(f.quantidade_minima) : null,
-        valor_unitario: f.valor_unitario ? Number(f.valor_unitario) : null,
-        data_entrada: new Date().toISOString().split("T")[0],
-      }]);
-      if (error) throw error;
-    },
+    mutationFn: (f: typeof form) => estoqueService.create(f),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["estoque-real"] }); toast({ title: "Item adicionado ao estoque" }); setIsAddOpen(false); setForm(emptyForm); },
     onError: (e) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (item: any) => {
-      const { error } = await supabase.from("estoque").update({
-        nome: item.nome.trim(), categoria: item.categoria || null,
-        quantidade: Number(item.quantidade), unidade: item.unidade,
-        quantidade_minima: item.quantidade_minima ? Number(item.quantidade_minima) : null,
-        valor_unitario: item.valor_unitario ? Number(item.valor_unitario) : null,
-      }).eq("id", item.id);
-      if (error) throw error;
-    },
+    mutationFn: (item: any) => estoqueService.update(item.id, item),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["estoque-real"] }); toast({ title: "Item atualizado" }); setEditingItem(null); },
     onError: (e) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: string) => { const { error } = await supabase.from("estoque").delete().eq("id", id); if (error) throw error; },
+    mutationFn: (id: string) => estoqueService.remove(id),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["estoque-real"] }); toast({ title: "Item removido" }); },
   });
 

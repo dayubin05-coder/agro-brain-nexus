@@ -4,7 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 import '@geoman-io/leaflet-geoman-free';
 import L from 'leaflet';
-import { supabase } from "@/integrations/supabase/client";
+import { talhoesService } from "@/services/talhoes.service";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -166,13 +166,11 @@ export function FarmMap({ fazendas }: FarmMapProps) {
     }
     try {
       setIsSaving(true);
-      const { error } = await supabase.from('talhoes').insert({
+      await talhoesService.create(newTalhao.fazenda_id, {
         nome: newTalhao.nome,
         area: Number(newTalhao.area),
-        fazenda_id: newTalhao.fazenda_id,
-        coordenadas: currentCoords
+        coordenadas: currentCoords,
       });
-      if (error) throw error;
       toast({ title: "Talhão salvo com sucesso!" });
       queryClient.invalidateQueries({ queryKey: ["fazendas"] });
       if (currentLayer) currentLayer.remove();
@@ -255,14 +253,10 @@ export function FarmMap({ fazendas }: FarmMapProps) {
     }
     try {
       setIsImporting(true);
-      const inserts = importedPolygons.map(p => ({
-        nome: p.name,
-        area: 0,
-        fazenda_id: importFazendaId,
-        coordenadas: p.coords
-      }));
-      const { error } = await supabase.from('talhoes').insert(inserts);
-      if (error) throw error;
+      await talhoesService.createMany(
+        importFazendaId,
+        importedPolygons.map((p) => ({ nome: p.name, area: 0, coordenadas: p.coords })),
+      );
       toast({ title: `${importedPolygons.length} talhões importados com sucesso!` });
       queryClient.invalidateQueries({ queryKey: ["fazendas"] });
       setIsImportOpen(false);

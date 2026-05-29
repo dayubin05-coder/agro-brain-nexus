@@ -4,7 +4,10 @@ import { Sprout, Calendar, TrendingUp, Wheat, Plus, Leaf, Loader2, Trash2, Penci
 import MetricCard from "@/components/MetricCard";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { plantiosService } from "@/services/plantios.service";
+import { culturasService } from "@/services/culturas.service";
+import { talhoesService } from "@/services/talhoes.service";
+import { qk } from "@/lib/queryKeys";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -40,51 +43,30 @@ export default function Plantio() {
   const [newPlantio, setNewPlantio] = useState(emptyForm);
 
   const { data: userData } = useCurrentUser();
-  const { data: culturas } = useQuery({ queryKey: ["culturas"], queryFn: async () => { const { data, error } = await supabase.from("culturas").select("*").order("nome"); if (error) throw error; return data; } });
+  const { data: culturas } = useQuery({ queryKey: qk.culturas(), queryFn: () => culturasService.listAll() });
   const { data: talhoes } = useQuery({
-    queryKey: ["talhoes-disponiveis"], enabled: !!userData,
-    queryFn: async () => {
-      const { data, error } = await supabase.from("talhoes").select("id, nome, area, fazendas (nome, user_id)").eq("fazendas.user_id", userData?.id);
-      if (error) throw error; return data.filter(t => t.fazendas !== null);
-    },
+    queryKey: qk.talhoesDisponiveis(userData?.id), enabled: !!userData,
+    queryFn: () => talhoesService.listAvailableForUser(userData!.id),
   });
   const { data: plantios, isLoading } = useQuery({
-    queryKey: ["plantios"], enabled: !!userData,
-    queryFn: async () => {
-      const { data, error } = await supabase.from("plantios").select("*, culturas (nome), talhoes!inner (nome, fazendas!inner (user_id))").eq("talhoes.fazendas.user_id", userData?.id).order("created_at", { ascending: false });
-      if (error) throw error; return data;
-    },
+    queryKey: qk.plantios(userData?.id), enabled: !!userData,
+    queryFn: () => plantiosService.listByUser(userData!.id),
   });
 
   const addPlantioMutation = useMutation({
-    mutationFn: async (p: typeof newPlantio) => {
-      const { error } = await supabase.from("plantios").insert([{
-        cultura_id: p.cultura_id, talhao_id: p.talhao_id, area_plantada: Number(p.area_plantada),
-        data_plantio: p.data_plantio, previsao_colheita: p.previsao_colheita || null,
-        variedade: p.variedade || null, densidade_plantio: p.densidade_plantio || null,
-        fertilizacao: p.fertilizacao || null, status: "plantio", progresso_percentual: 0,
-      }]);
-      if (error) throw error;
-    },
+    mutationFn: (p: typeof newPlantio) => plantiosService.create(p),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["plantios"] }); toast({ title: "Plantio registrado" }); setIsAddOpen(false); setNewPlantio(emptyForm); },
     onError: (error) => toast({ title: "Erro ao registrar", description: error.message, variant: "destructive" }),
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (item: any) => {
-      const { error } = await supabase.from("plantios").update({
-        variedade: item.variedade || null, densidade_plantio: item.densidade_plantio || null,
-        fertilizacao: item.fertilizacao || null, previsao_colheita: item.previsao_colheita || null,
-        status: item.status, progresso_percentual: Number(item.progresso_percentual) || 0,
-      }).eq("id", item.id);
-      if (error) throw error;
-    },
+    mutationFn: (item: any) => plantiosService.update(item.id, item),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["plantios"] }); toast({ title: "Plantio atualizado" }); setEditingItem(null); },
     onError: (e) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: string) => { const { error } = await supabase.from("plantios").delete().eq("id", id); if (error) throw error; },
+    mutationFn: (id: string) => plantiosService.remove(id),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["plantios"] }); toast({ title: "Plantio removido" }); },
     onError: (e) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
   });

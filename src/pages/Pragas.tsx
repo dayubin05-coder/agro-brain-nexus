@@ -3,7 +3,8 @@ import { motion } from "framer-motion";
 import { Bug, Shield, AlertTriangle, MapPin, Calendar, Plus, Loader2, Trash2, Pencil } from "lucide-react";
 import MetricCard from "@/components/MetricCard";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { pragasService } from "@/services/pragas.service";
+import { qk } from "@/lib/queryKeys";
 import { useUserFazendas } from "@/hooks/use-user-fazendas";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -26,41 +27,24 @@ export default function Pragas() {
   const [form, setForm] = useState(emptyForm);
 
   const { data: ocorrencias, isLoading } = useQuery({
-    queryKey: ["pragas-real"], enabled: !!userData,
-    queryFn: async () => {
-      const { data, error } = await supabase.from("pragas_ocorrencias" as any).select("*, fazendas!inner(user_id, nome), talhoes(nome)").eq("fazendas.user_id", userData!.id).order("data_deteccao", { ascending: false });
-      if (error) throw error; return data as any[];
-    },
+    queryKey: qk.pragas(userData?.id), enabled: !!userData,
+    queryFn: () => pragasService.listByUser(userData!.id),
   });
 
   const addMutation = useMutation({
-    mutationFn: async (f: typeof form) => {
-      const { error } = await supabase.from("pragas_ocorrencias" as any).insert([{
-        fazenda_id: f.fazenda_id, nome: f.nome.trim(), tipo: f.tipo, severidade: f.severidade,
-        cultura: f.cultura || null, area_afetada: f.area_afetada ? Number(f.area_afetada) : null,
-        recomendacao: f.recomendacao || null, data_deteccao: f.data_deteccao || new Date().toISOString().split("T")[0], status: "ativa",
-      }] as any);
-      if (error) throw error;
-    },
+    mutationFn: (f: typeof form) => pragasService.create(f),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["pragas-real"] }); toast({ title: "Ocorrência registrada" }); setIsAddOpen(false); setForm(emptyForm); },
     onError: (e) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (item: any) => {
-      const { error } = await supabase.from("pragas_ocorrencias" as any).update({
-        nome: item.nome.trim(), tipo: item.tipo, severidade: item.severidade, status: item.status,
-        cultura: item.cultura || null, area_afetada: item.area_afetada ? Number(item.area_afetada) : null,
-        recomendacao: item.recomendacao || null,
-      } as any).eq("id", item.id);
-      if (error) throw error;
-    },
+    mutationFn: (item: any) => pragasService.update(item.id, item),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["pragas-real"] }); toast({ title: "Ocorrência atualizada" }); setEditingItem(null); },
     onError: (e) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: string) => { const { error } = await supabase.from("pragas_ocorrencias" as any).delete().eq("id", id); if (error) throw error; },
+    mutationFn: (id: string) => pragasService.remove(id),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["pragas-real"] }); toast({ title: "Ocorrência removida" }); },
   });
 
