@@ -2,11 +2,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Mock do client Supabase usado pela service
 const updateEqMock = vi.fn();
-const updateMock = vi.fn(() => ({ eq: updateEqMock }));
+const updateMock: any = vi.fn(() => ({ eq: updateEqMock }));
 const singleMock = vi.fn();
-const eqMock = vi.fn(() => ({ single: singleMock }));
-const selectMock = vi.fn(() => ({ eq: eqMock }));
-const fromMock = vi.fn(() => ({ select: selectMock, update: updateMock }));
+const eqMock: any = vi.fn(() => ({ single: singleMock }));
+const selectMock: any = vi.fn(() => ({ eq: eqMock }));
+const fromMock: any = vi.fn(() => ({ select: selectMock, update: updateMock }));
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
