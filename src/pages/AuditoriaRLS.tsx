@@ -15,12 +15,13 @@ import {
   ShieldAlert
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { auditoriaService, type TableSecurityStatus } from "@/services/auditoria.service";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+
 
 interface TableSecurityStatus {
   table_name: string;
