@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { talhoesService } from "@/services/talhoes.service";
+import { qk } from "@/lib/queryKeys";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2, Loader2, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -27,30 +28,21 @@ export default function TalhoesManager({ farmId, farmName, open, onOpenChange }:
   const [editing, setEditing] = useState<any>(null);
   const [form, setForm] = useState(emptyTalhao);
 
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: qk.talhoes(farmId) });
+    queryClient.invalidateQueries({ queryKey: ["fazendas"] });
+  };
+
   const { data: talhoes, isLoading } = useQuery({
-    queryKey: ["talhoes", farmId],
+    queryKey: qk.talhoes(farmId),
     enabled: open,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("talhoes")
-        .select("*")
-        .eq("fazenda_id", farmId)
-        .order("nome");
-      if (error) throw error;
-      return data;
-    },
+    queryFn: () => talhoesService.listByFarm(farmId),
   });
 
   const addMutation = useMutation({
-    mutationFn: async (d: typeof emptyTalhao) => {
-      const { error } = await supabase.from("talhoes").insert([{
-        nome: d.nome, area: Number(d.area), fazenda_id: farmId, observacoes: d.observacoes || null,
-      }]);
-      if (error) throw error;
-    },
+    mutationFn: (d: typeof emptyTalhao) => talhoesService.create(farmId, d),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["talhoes", farmId] });
-      queryClient.invalidateQueries({ queryKey: ["fazendas"] });
+      invalidate();
       toast({ title: "Talhão adicionado" });
       setIsAddOpen(false);
       setForm(emptyTalhao);
@@ -59,15 +51,9 @@ export default function TalhoesManager({ farmId, farmName, open, onOpenChange }:
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (d: any) => {
-      const { error } = await supabase.from("talhoes").update({
-        nome: d.nome, area: Number(d.area), observacoes: d.observacoes || null,
-      }).eq("id", d.id);
-      if (error) throw error;
-    },
+    mutationFn: (d: any) => talhoesService.update(d.id, d),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["talhoes", farmId] });
-      queryClient.invalidateQueries({ queryKey: ["fazendas"] });
+      invalidate();
       toast({ title: "Talhão atualizado" });
       setEditing(null);
     },
@@ -75,13 +61,9 @@ export default function TalhoesManager({ farmId, farmName, open, onOpenChange }:
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("talhoes").delete().eq("id", id);
-      if (error) throw error;
-    },
+    mutationFn: (id: string) => talhoesService.remove(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["talhoes", farmId] });
-      queryClient.invalidateQueries({ queryKey: ["fazendas"] });
+      invalidate();
       toast({ title: "Talhão removido" });
     },
     onError: (e) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
