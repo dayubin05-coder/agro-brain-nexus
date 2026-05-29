@@ -16,6 +16,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { plantioSchema } from "@/lib/schemas";
+import { validateOrToast } from "@/lib/validate";
 
 const produtividadeData = [
   { safra: "20/21", soja: 58, milho: 95 }, { safra: "21/22", soja: 62, milho: 102 },
@@ -73,10 +75,16 @@ export default function Plantio() {
 
   const handleAddPlantio = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newPlantio.cultura_id || !newPlantio.talhao_id || !newPlantio.area_plantada || !newPlantio.data_plantio) { toast({ title: "Preencha os campos obrigatórios", variant: "destructive" }); return; }
+    const parsed = validateOrToast(plantioSchema, newPlantio);
+    if (!parsed) return;
     addPlantioMutation.mutate(newPlantio);
   };
-  const handleEditSubmit = (e: React.FormEvent) => { e.preventDefault(); updateMutation.mutate(editingItem); };
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const parsed = validateOrToast(plantioSchema.partial(), editingItem);
+    if (!parsed) return;
+    updateMutation.mutate(editingItem);
+  };
   const openEdit = (p: any) => {
     setEditingItem({
       id: p.id, variedade: p.variedade || "", densidade_plantio: p.densidade_plantio || "",

@@ -14,6 +14,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatBRLCompact, formatDateBR, formatBRL, formatMonthShortBR } from "@/lib/formatters";
+import { transacaoSchema } from "@/lib/schemas";
+import { validateOrToast } from "@/lib/validate";
 
 const categoriasList = ["Venda", "Insumos", "Mão de obra", "Combustível", "Manutenção", "Logística", "Outros"];
 const emptyForm = { fazenda_id: "", descricao: "", valor: "", tipo: "despesa", data: "", categoria: "" };
@@ -52,11 +54,17 @@ export default function Financeiro() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.fazenda_id || !form.descricao || !form.valor || !form.data) { toast({ title: "Preencha os campos obrigatórios", variant: "destructive" }); return; }
+    const parsed = validateOrToast(transacaoSchema, form);
+    if (!parsed) return;
     addMutation.mutate(form);
   };
 
-  const handleEditSubmit = (e: React.FormEvent) => { e.preventDefault(); updateMutation.mutate(editingItem); };
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const parsed = validateOrToast(transacaoSchema.partial({ fazenda_id: true }), editingItem);
+    if (!parsed) return;
+    updateMutation.mutate(editingItem);
+  };
 
   const openEdit = (t: any) => {
     setEditingItem({ id: t.id, descricao: t.descricao, valor: String(t.valor), tipo: t.tipo, data: t.data, categoria: t.categoria || "" });

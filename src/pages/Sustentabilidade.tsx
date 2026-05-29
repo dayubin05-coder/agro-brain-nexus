@@ -14,6 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { sustentabilidadeSchema } from "@/lib/schemas";
+import { validateOrToast } from "@/lib/validate";
 
 const CATEGORIAS = [
   { value: "ambiental", label: "Ambiental", icon: Leaf, color: "text-success" },
@@ -64,7 +66,13 @@ export default function Sustentabilidade() {
     onError: (e) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
   });
 
-  const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); addMutation.mutate(form); };
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const payload = { ...form, data: new Date().toISOString().slice(0, 10) };
+    const parsed = validateOrToast(sustentabilidadeSchema, payload);
+    if (!parsed) return;
+    addMutation.mutate(form);
+  };
   const handleIndicadorSelect = (indicador: string) => {
     const sugestao = INDICADORES_SUGERIDOS[form.categoria]?.find(i => i.nome === indicador);
     setForm({ ...form, indicador, unidade: sugestao?.unidade || form.unidade });

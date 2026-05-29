@@ -13,6 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatBRL, formatBRLKilo, formatNumberBR } from "@/lib/formatters";
+import { estoqueSchema } from "@/lib/schemas";
+import { validateOrToast } from "@/lib/validate";
 const categorias = ["Sementes", "Fertilizantes", "Defensivos", "Combustível", "Peças", "Outros"];
 const emptyForm = { fazenda_id: "", nome: "", categoria: "", quantidade: "", unidade: "kg", quantidade_minima: "", valor_unitario: "" };
 
@@ -50,12 +52,15 @@ export default function Estoque() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.fazenda_id || !form.nome || !form.quantidade) { toast({ title: "Preencha os campos obrigatórios", variant: "destructive" }); return; }
+    const parsed = validateOrToast(estoqueSchema, form);
+    if (!parsed) return;
     addMutation.mutate(form);
   };
 
   const handleEditSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const parsed = validateOrToast(estoqueSchema.partial({ fazenda_id: true }), editingItem);
+    if (!parsed) return;
     updateMutation.mutate(editingItem);
   };
 

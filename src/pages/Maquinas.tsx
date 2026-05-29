@@ -13,6 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatNumberBR } from "@/lib/formatters";
+import { maquinaSchema } from "@/lib/schemas";
+import { validateOrToast } from "@/lib/validate";
 
 const tipos = ["Trator", "Colheitadeira", "Pulverizador", "Implemento", "Drone", "Caminhão", "Outro"];
 const statusIcon: Record<string, { icon: React.ElementType; color: string; bg: string; label: string }> = {
@@ -54,10 +56,16 @@ export default function Maquinas() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.fazenda_id || !form.nome) { toast({ title: "Preencha os campos obrigatórios", variant: "destructive" }); return; }
+    const parsed = validateOrToast(maquinaSchema, form);
+    if (!parsed) return;
     addMutation.mutate(form);
   };
-  const handleEditSubmit = (e: React.FormEvent) => { e.preventDefault(); updateMutation.mutate(editingItem); };
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const parsed = validateOrToast(maquinaSchema.partial({ fazenda_id: true }), editingItem);
+    if (!parsed) return;
+    updateMutation.mutate(editingItem);
+  };
   const openEdit = (m: any) => {
     setEditingItem({
       id: m.id, nome: m.nome, tipo: m.tipo || "", modelo: m.modelo || "", ano: m.ano ? String(m.ano) : "",

@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 import { useCurrentUser } from "@/hooks/use-current-user";
-
+import { profileSchema } from "@/lib/schemas";
+import { validateOrToast } from "@/lib/validate";
 export default function Perfil() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -114,6 +115,8 @@ export default function Perfil() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const parsed = validateOrToast(profileSchema, form);
+    if (!parsed) return;
     updateMutation.mutate(form);
   };
 

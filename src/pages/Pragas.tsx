@@ -14,6 +14,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatDateBR } from "@/lib/formatters";
+import { pragaSchema } from "@/lib/schemas";
+import { validateOrToast } from "@/lib/validate";
 
 const sevColor: Record<string, string> = { alta: "bg-destructive/10 text-destructive", media: "bg-warning/10 text-warning", baixa: "bg-success/10 text-success" };
 const emptyForm = { fazenda_id: "", nome: "", tipo: "praga", severidade: "media", cultura: "", area_afetada: "", recomendacao: "", data_deteccao: "", status: "ativa" };
@@ -50,10 +52,16 @@ export default function Pragas() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.fazenda_id || !form.nome) { toast({ title: "Preencha os campos obrigatórios", variant: "destructive" }); return; }
+    const parsed = validateOrToast(pragaSchema, form);
+    if (!parsed) return;
     addMutation.mutate(form);
   };
-  const handleEditSubmit = (e: React.FormEvent) => { e.preventDefault(); updateMutation.mutate(editingItem); };
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const parsed = validateOrToast(pragaSchema.partial({ fazenda_id: true }), editingItem);
+    if (!parsed) return;
+    updateMutation.mutate(editingItem);
+  };
   const openEdit = (p: any) => {
     setEditingItem({
       id: p.id, nome: p.nome, tipo: p.tipo, severidade: p.severidade, status: p.status,
