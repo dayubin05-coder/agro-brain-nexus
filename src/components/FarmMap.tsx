@@ -253,14 +253,10 @@ export function FarmMap({ fazendas }: FarmMapProps) {
     }
     try {
       setIsImporting(true);
-      const inserts = importedPolygons.map(p => ({
-        nome: p.name,
-        area: 0,
-        fazenda_id: importFazendaId,
-        coordenadas: p.coords
-      }));
-      const { error } = await supabase.from('talhoes').insert(inserts);
-      if (error) throw error;
+      await talhoesService.createMany(
+        importFazendaId,
+        importedPolygons.map((p) => ({ nome: p.name, area: 0, coordenadas: p.coords })),
+      );
       toast({ title: `${importedPolygons.length} talhões importados com sucesso!` });
       queryClient.invalidateQueries({ queryKey: ["fazendas"] });
       setIsImportOpen(false);
