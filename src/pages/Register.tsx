@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { authService } from "@/services/auth.service";
 import { Leaf, Mail, Lock, User, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { registerSchema } from "@/lib/schemas";
+import { t } from "@/lib/i18n";
 
 export default function Register() {
   const [nome, setNome] = useState("");
@@ -20,19 +21,9 @@ export default function Register() {
       return;
     }
     setLoading(true);
-
     try {
-      const { error } = await supabase.auth.signUp({
-        email: parsed.data.email,
-        password: parsed.data.password,
-        options: {
-          data: { nome: parsed.data.nome },
-          emailRedirectTo: window.location.origin,
-        }
-      });
-
-      if (error) throw error;
-      toast.success("Conta criada! Verifique seu email para confirmar o cadastro.");
+      await authService.signUp(parsed.data.email, parsed.data.password, parsed.data.nome);
+      toast.success(t("auth.register.success"));
       navigate("/login");
     } catch (error: any) {
       toast.error("Erro ao criar conta: " + error.message);

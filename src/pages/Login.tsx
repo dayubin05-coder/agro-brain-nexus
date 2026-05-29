@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { authService } from "@/services/auth.service";
 import { Leaf, Mail, Lock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { loginSchema, resetPasswordSchema } from "@/lib/schemas";
+import { t } from "@/lib/i18n";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -19,17 +20,11 @@ export default function Login() {
       return;
     }
     setLoading(true);
-
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email: parsed.data.email, password: parsed.data.password });
-
-
-      if (error) throw error;
+      await authService.signIn(parsed.data.email, parsed.data.password);
       navigate("/");
     } catch (error: any) {
-      toast.error(error.message === "Invalid login credentials" 
-        ? "Email ou senha incorretos" 
-        : "Erro ao fazer login. Tente novamente.");
+      toast.error(error.message === "Invalid login credentials" ? t("auth.login.invalid") : t("auth.login.error"));
     } finally {
       setLoading(false);
     }
@@ -38,17 +33,14 @@ export default function Login() {
   const handleResetPassword = async () => {
     const parsed = resetPasswordSchema.safeParse({ email });
     if (!parsed.success) {
-      toast.warning(parsed.error.issues[0]?.message ?? "E-mail inválido");
+      toast.warning(parsed.error.issues[0]?.message ?? t("validation.email"));
       return;
     }
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-      if (error) throw error;
-      toast.success("Email de recuperação enviado! Verifique sua caixa de entrada.");
-    } catch (error: any) {
-      toast.error("Erro ao enviar email de recuperação.");
+      await authService.resetPasswordForEmail(parsed.data.email);
+      toast.success(t("auth.reset.success"));
+    } catch {
+      toast.error(t("auth.reset.error"));
     }
   };
 
