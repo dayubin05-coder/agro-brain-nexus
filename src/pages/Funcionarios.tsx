@@ -13,6 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatDateBR } from "@/lib/formatters";
+import { funcionarioSchema } from "@/lib/schemas";
+import { validateOrToast } from "@/lib/validate";
 
 const setores = ["Mecanização", "Técnico", "Administrativo", "Manutenção", "Campo", "Precisão"];
 const statusColor: Record<string, string> = {
