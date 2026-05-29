@@ -4,7 +4,8 @@ import {
   ShoppingCart, Package, Truck, Users, Search, Star, MapPin, Gavel, Plus, Loader2
 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { marketplaceService } from "@/services/marketplace.service";
+
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,30 +30,16 @@ export default function Marketplace() {
 
   const { data: anuncios, isLoading } = useQuery({
     queryKey: ["marketplace-anuncios"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("marketplace_anuncios")
-        .select("*")
-        .eq("status", "ativo")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
-    },
+    queryFn: () => marketplaceService.listAtivos(),
   });
 
   const { data: user } = useCurrentUser();
   const { data: minhasVendas } = useQuery({
     queryKey: ["minhas-vendas", user?.id],
     enabled: !!user,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("marketplace_anuncios")
-        .select("*, marketplace_propostas(id, valor, status)")
-        .eq("user_id", user!.id);
-      if (error) throw error;
-      return data;
-    },
+    queryFn: () => marketplaceService.listByUser(user!.id),
   });
+
   return (
     <div className="space-y-6">
       <div>
