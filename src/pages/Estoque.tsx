@@ -13,6 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatBRL, formatBRLKilo, formatNumberBR } from "@/lib/formatters";
+import { estoqueSchema } from "@/lib/schemas";
+import { validateOrToast } from "@/lib/validate";
 const categorias = ["Sementes", "Fertilizantes", "Defensivos", "Combustível", "Peças", "Outros"];
 const emptyForm = { fazenda_id: "", nome: "", categoria: "", quantidade: "", unidade: "kg", quantidade_minima: "", valor_unitario: "" };
 
