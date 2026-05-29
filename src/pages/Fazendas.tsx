@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import TalhoesManager from "@/components/TalhoesManager";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { fazendaSchema } from "@/lib/schemas";
 
 const emptyForm = { nome: "", cidade: "", estado: "", area_total: "" };
 
@@ -70,15 +71,32 @@ export default function Fazendas() {
     onError: (e) => toast({ title: "Erro ao remover", description: e.message, variant: "destructive" }),
   });
 
+  const validate = (data: any) => {
+    const parsed = fazendaSchema.safeParse({
+      nome: data.nome,
+      cidade: data.cidade,
+      estado: data.estado,
+      area_total: data.area_total,
+    });
+    if (!parsed.success) {
+      toast({ title: "Dados inválidos", description: parsed.error.issues[0]?.message, variant: "destructive" });
+      return false;
+    }
+    return true;
+  };
+
   const handleAddFarm = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validate(newFarm)) return;
     addFarmMutation.mutate(newFarm);
   };
 
   const handleEditFarm = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validate(editingFarm)) return;
     updateFarmMutation.mutate(editingFarm);
   };
+
 
   const openEdit = (farm: any) => {
     setEditingFarm({ id: farm.id, nome: farm.nome, cidade: farm.cidade || "", estado: farm.estado || "", area_total: String(farm.area_total) });

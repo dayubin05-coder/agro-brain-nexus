@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Leaf, Mail, Lock, User, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { registerSchema } from "@/lib/schemas";
 
 export default function Register() {
   const [nome, setNome] = useState("");
@@ -13,16 +14,19 @@ export default function Register() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    const parsed = registerSchema.safeParse({ nome, email, password });
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0]?.message ?? "Dados inválidos");
+      return;
+    }
     setLoading(true);
 
     try {
       const { error } = await supabase.auth.signUp({
-        email,
-        password,
+        email: parsed.data.email,
+        password: parsed.data.password,
         options: {
-          data: {
-            nome,
-          },
+          data: { nome: parsed.data.nome },
           emailRedirectTo: window.location.origin,
         }
       });
@@ -37,8 +41,6 @@ export default function Register() {
     }
   };
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-primary/20 rounded-full blur-3xl" />
       <div className="absolute bottom-[-10%] left-[-10%] w-96 h-96 bg-primary/20 rounded-full blur-3xl" />
