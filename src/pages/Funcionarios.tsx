@@ -55,10 +55,16 @@ export default function Funcionarios() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.fazenda_id || !form.nome) { toast({ title: "Preencha os campos obrigatórios", variant: "destructive" }); return; }
+    const parsed = validateOrToast(funcionarioSchema, form);
+    if (!parsed) return;
     addMutation.mutate(form);
   };
-  const handleEditSubmit = (e: React.FormEvent) => { e.preventDefault(); updateMutation.mutate(editingItem); };
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const parsed = validateOrToast(funcionarioSchema.partial({ fazenda_id: true }), editingItem);
+    if (!parsed) return;
+    updateMutation.mutate(editingItem);
+  };
   const openEdit = (f: any) => {
     setEditingItem({ id: f.id, nome: f.nome, cargo: f.cargo || "", setor: f.setor || "", telefone: f.telefone || "", data_admissao: f.data_admissao || "", status: f.status || "ativo" });
   };
