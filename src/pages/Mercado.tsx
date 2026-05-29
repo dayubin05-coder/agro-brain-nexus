@@ -6,24 +6,13 @@ import {
 import MetricCard from "@/components/MetricCard";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { mercadoService, type CommodityData } from "@/services/mercado.service";
+
 import { Button } from "@/components/ui/button";
 import { formatBRL } from "@/lib/formatters";
 
-interface Commodity {
-  nome: string;
-  preco: string;
-  variacao: string;
-  tipo: string;
-  tendencia: string;
-  previsao: string;
-}
+// Types re-exported from service
 
-interface CommodityData {
-  commodities: Commodity[];
-  historico: Record<string, { data: string; preco: number }[]>;
-  updatedAt: string;
-}
 
 const recomendacoes = [
   { cultura: "Soja", acao: "Aguardar", desc: "Preço em queda. Previsão de recuperação em 30 dias. Armazene se possível.", urgencia: "media" },
@@ -45,22 +34,10 @@ export default function Mercado() {
 
   const { data, isLoading, refetch, isFetching } = useQuery<CommodityData>({
     queryKey: ["commodity-prices"],
-    queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/commodity-prices`,
-        {
-          headers: {
-            Authorization: `Bearer ${session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-        }
-      );
-      if (!res.ok) throw new Error("Failed to fetch prices");
-      return res.json();
-    },
+    queryFn: () => mercadoService.fetchPrices(),
     staleTime: 5 * 60 * 1000, // 5 min cache
   });
+
 
   const commodities = data?.commodities || [];
   const historico = data?.historico || {};

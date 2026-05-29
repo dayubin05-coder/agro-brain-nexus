@@ -2,7 +2,8 @@ import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { MapPin, Layers, Ruler, Sprout, Search, Loader2, ChevronRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { talhoesService } from "@/services/talhoes.service";
+
 import { MapContainer, TileLayer, Polygon, Popup, Marker } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -48,35 +49,9 @@ export default function TalhoesDashboard() {
   const { data: talhoes, isLoading } = useQuery({
     queryKey: ["talhoes-dashboard", user?.id],
     enabled: !!user,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("talhoes")
-        .select(`
-          id, nome, area, coordenadas, observacoes, fazenda_id,
-          fazendas!inner (id, nome, cidade, estado, user_id),
-          plantios (id)
-        `)
-        .eq("fazendas.user_id", user!.id)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-
-      if (error) throw error;
-
-      return (data || []).map((t: any) => ({
-        id: t.id,
-        nome: t.nome,
-        area: t.area,
-        coordenadas: t.coordenadas,
-        observacoes: t.observacoes,
-        fazenda_id: t.fazenda_id,
-        fazenda_nome: t.fazendas.nome,
-        fazenda_cidade: t.fazendas.cidade,
-        fazenda_estado: t.fazendas.estado,
-        plantios_count: t.plantios?.length || 0,
-      })) as Talhao[];
-    },
+    queryFn: () => talhoesService.listDashboardForUser(user!.id) as Promise<Talhao[]>,
   });
+
 
   const farms = useMemo(() => {
     if (!talhoes) return [];

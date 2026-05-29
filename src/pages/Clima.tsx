@@ -7,7 +7,8 @@ import MetricCard from "@/components/MetricCard";
 import WeatherWidget from "@/components/WeatherWidget";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { climaService } from "@/services/clima.service";
+
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { formatDayMonthBR, formatWeekdayShortBR } from "@/lib/formatters";
 
@@ -15,16 +16,9 @@ export default function Clima() {
   const { data: userData } = useCurrentUser();
 
   const { data: fazendas, isLoading } = useQuery({
-    queryKey: ["clima-fazendas"],
+    queryKey: ["clima-fazendas", userData?.id],
     enabled: !!userData,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("fazendas")
-        .select("id, nome, latitude, longitude, cidade, estado")
-        .eq("user_id", userData?.id!);
-      if (error) throw error;
-      return data;
-    },
+    queryFn: () => climaService.listFazendasComCoords(userData!.id),
   });
 
   const farmsWithCoords = fazendas?.filter(f => f.latitude && f.longitude) || [];
@@ -34,15 +28,10 @@ export default function Clima() {
   const { data: weatherData } = useQuery({
     queryKey: ["clima-weather", primaryFarm?.latitude, primaryFarm?.longitude],
     enabled: !!primaryFarm,
-    queryFn: async () => {
-      const { data, error } = await supabase.functions.invoke("weather", {
-        body: { latitude: primaryFarm!.latitude, longitude: primaryFarm!.longitude },
-      });
-      if (error) throw error;
-      return data;
-    },
+    queryFn: () => climaService.fetchWeather(primaryFarm!.latitude!, primaryFarm!.longitude!),
     staleTime: 30 * 60 * 1000,
   });
+
 
   // Build hourly temperature chart data (today only, every 2 hours)
   const tempChartData = weatherData?.hourly?.time
