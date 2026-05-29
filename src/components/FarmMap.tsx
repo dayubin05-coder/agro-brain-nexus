@@ -4,7 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 import '@geoman-io/leaflet-geoman-free';
 import L from 'leaflet';
-import { supabase } from "@/integrations/supabase/client";
+import { talhoesService } from "@/services/talhoes.service";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import {
