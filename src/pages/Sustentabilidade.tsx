@@ -14,6 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { sustentabilidadeSchema } from "@/lib/schemas";
+import { validateOrToast } from "@/lib/validate";
 
 const CATEGORIAS = [
   { value: "ambiental", label: "Ambiental", icon: Leaf, color: "text-success" },
