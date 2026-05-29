@@ -56,9 +56,6 @@ const queryClient = new QueryClient({
 const RouteTracker = () => {
   usePageTracking();
   return null;
-const RouteTracker = () => {
-  usePageTracking();
-  return null;
 };
 
 const OnlineReplay = () => {
