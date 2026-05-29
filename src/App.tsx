@@ -15,9 +15,6 @@ import { RouteFallback } from "./components/PageSkeleton";
 import { usePageTracking } from "./hooks/use-page-tracking";
 import { idbPersister } from "./lib/offline-persister";
 import { replayQueue } from "./lib/offline-queue";
-import ErrorBoundary from "./components/ErrorBoundary";
-import { RouteFallback } from "./components/PageSkeleton";
-import { usePageTracking } from "./hooks/use-page-tracking";
 
 // Auth pages (small, eager — needed on first paint when logged out)
 import Login from "./pages/Login";
