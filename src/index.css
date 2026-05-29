@@ -166,3 +166,7 @@
     background-clip: text;
   }
 }
+
+#lovable-badge {
+  display: none !important;
+}
