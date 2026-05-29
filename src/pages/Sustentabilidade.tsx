@@ -66,7 +66,13 @@ export default function Sustentabilidade() {
     onError: (e) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
   });
 
-  const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); addMutation.mutate(form); };
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const payload = { ...form, data: form.data || new Date().toISOString().slice(0, 10) };
+    const parsed = validateOrToast(sustentabilidadeSchema, payload);
+    if (!parsed) return;
+    addMutation.mutate(form);
+  };
   const handleIndicadorSelect = (indicador: string) => {
     const sugestao = INDICADORES_SUGERIDOS[form.categoria]?.find(i => i.nome === indicador);
     setForm({ ...form, indicador, unidade: sugestao?.unidade || form.unidade });
