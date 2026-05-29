@@ -65,34 +65,6 @@ export default function Perfil() {
     },
     onError: (e) => toast({ title: "Erro ao atualizar", description: e.message, variant: "destructive" }),
   });
-        .eq("id", userId);
-      if (updateError) throw updateError;
-
-      queryClient.invalidateQueries({ queryKey: ["profile"] });
-      toast({ title: "Avatar atualizado com sucesso!" });
-    } catch (err: any) {
-      toast({ title: "Erro ao enviar avatar", description: err.message, variant: "destructive" });
-    } finally {
-      setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
-  };
-
-  const updateMutation = useMutation({
-    mutationFn: async (data: typeof form) => {
-      if (!user) throw new Error("Not authenticated");
-      const { error } = await supabase
-        .from("profiles")
-        .update({ nome: data.nome, telefone: data.telefone, tipo: data.tipo })
-        .eq("id", user.id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["profile"] });
-      toast({ title: "Perfil atualizado com sucesso!" });
-    },
-    onError: (e) => toast({ title: "Erro ao atualizar", description: e.message, variant: "destructive" }),
-  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
