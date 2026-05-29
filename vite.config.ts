@@ -41,6 +41,7 @@ export default defineConfig(({ mode }) => ({
               expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
               cacheableResponse: { statuses: [0, 200] },
             },
+          },
           {
             // Supabase REST/Storage: NetworkFirst so writes always try network,
             // but reads remain available offline from last successful response.
@@ -54,7 +55,6 @@ export default defineConfig(({ mode }) => ({
             },
           },
         ],
-      },
       },
       manifest: {
         name: "AgroTech - Sistema Operacional do Agronegócio",
