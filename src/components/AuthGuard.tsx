@@ -1,44 +1,28 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const PUBLIC_ROUTES = ["/login", "/register", "/reset-password"];
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
-  const [session, setSession] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const { session, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setLoading(false);
-      if (!session && !PUBLIC_ROUTES.includes(location.pathname)) {
-        navigate("/login", { replace: true });
-      } else if (session && PUBLIC_ROUTES.includes(location.pathname)) {
-        navigate("/", { replace: true });
-      }
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (!session && !PUBLIC_ROUTES.includes(location.pathname)) {
-        navigate("/login", { replace: true });
-      } else if (session && PUBLIC_ROUTES.includes(location.pathname)) {
-        navigate("/", { replace: true });
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate, location]);
+    if (loading) return;
+    const isPublic = PUBLIC_ROUTES.includes(location.pathname);
+    if (!session && !isPublic) {
+      navigate("/login", { replace: true });
+    } else if (session && isPublic) {
+      navigate("/", { replace: true });
+    }
+  }, [session, loading, location.pathname, navigate]);
 
   if (loading) {
     return (
       <div className="h-screen w-full flex items-center justify-center bg-background">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }

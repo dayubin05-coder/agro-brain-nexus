@@ -1,17 +1,15 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 /**
- * Returns the authenticated Supabase user, cached across the app.
- * Prefer this over calling `supabase.auth.getUser()` inline.
+ * Returns the authenticated Supabase user from the AuthContext.
+ * Kept for backwards compatibility with existing components.
  */
 export function useCurrentUser() {
-  return useQuery({
-    queryKey: ["current-user"],
-    queryFn: async () => {
-      const { data } = await supabase.auth.getUser();
-      return data.user;
-    },
-    staleTime: 5 * 60 * 1000,
-  });
+  const { user, loading } = useAuth();
+  return {
+    data: user,
+    isLoading: loading,
+    isFetching: loading,
+    error: null as null,
+  };
 }
