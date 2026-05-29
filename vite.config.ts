@@ -42,6 +42,18 @@ export default defineConfig(({ mode }) => ({
               cacheableResponse: { statuses: [0, 200] },
             },
           },
+          {
+            // Supabase REST/Storage: NetworkFirst so writes always try network,
+            // but reads remain available offline from last successful response.
+            urlPattern: /^https:\/\/.*\.supabase\.co\/(rest|storage)\/.*/i,
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "supabase-api-cache",
+              networkTimeoutSeconds: 5,
+              expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 7 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
         ],
       },
       manifest: {

@@ -1,16 +1,20 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient } from "@tanstack/react-query";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { AuthProvider } from "./contexts/AuthContext";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import AppLayout from "./components/AppLayout";
 import AuthGuard from "./components/AuthGuard";
 import ErrorBoundary from "./components/ErrorBoundary";
+import OfflineIndicator from "./components/OfflineIndicator";
 import { RouteFallback } from "./components/PageSkeleton";
 import { usePageTracking } from "./hooks/use-page-tracking";
+import { idbPersister } from "./lib/offline-persister";
+import { replayQueue } from "./lib/offline-queue";
 
 // Auth pages (small, eager — needed on first paint when logged out)
 import Login from "./pages/Login";
@@ -54,12 +58,31 @@ const RouteTracker = () => {
   return null;
 };
 
+const OnlineReplay = () => {
+  useEffect(() => {
+    const handler = () => void replayQueue();
+    window.addEventListener("online", handler);
+    if (navigator.onLine) void replayQueue();
+    return () => window.removeEventListener("online", handler);
+  }, []);
+  return null;
+};
+
 const App = () => (
   <ThemeProvider>
-    <QueryClientProvider client={queryClient}>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{
+        persister: idbPersister,
+        maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+        buster: "v1",
+      }}
+    >
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <OfflineIndicator />
+        <OnlineReplay />
         <BrowserRouter>
           <AuthProvider>
             <AuthGuard>
@@ -97,7 +120,7 @@ const App = () => (
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
-    </QueryClientProvider>
+    </PersistQueryClientProvider>
   </ThemeProvider>
 );
 
