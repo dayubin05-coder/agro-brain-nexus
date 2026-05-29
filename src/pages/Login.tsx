@@ -51,19 +51,7 @@ export default function Login() {
     }
   };
 
-      return;
-    }
-    
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-      if (error) throw error;
-      toast.success("Email de recuperação enviado! Verifique sua caixa de entrada.");
-    } catch (error: any) {
-      toast.error("Erro ao enviar email de recuperação.");
-    }
-  };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
