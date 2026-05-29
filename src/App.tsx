@@ -10,6 +10,7 @@ import AppLayout from "./components/AppLayout";
 import AuthGuard from "./components/AuthGuard";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { RouteFallback } from "./components/PageSkeleton";
+import { usePageTracking } from "./hooks/use-page-tracking";
 
 // Auth pages (small, eager — needed on first paint when logged out)
 import Login from "./pages/Login";
@@ -48,6 +49,11 @@ const queryClient = new QueryClient({
   },
 });
 
+const RouteTracker = () => {
+  usePageTracking();
+  return null;
+};
+
 const App = () => (
   <ThemeProvider>
     <QueryClientProvider client={queryClient}>
@@ -59,6 +65,7 @@ const App = () => (
             <AuthGuard>
               <ErrorBoundary>
                 <Suspense fallback={<RouteFallback />}>
+                  <RouteTracker />
                   <Routes>
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />

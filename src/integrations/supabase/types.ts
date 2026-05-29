@@ -38,6 +38,72 @@ export type Database = {
         }
         Relationships: []
       }
+      app_events: {
+        Row: {
+          created_at: string
+          event: string
+          id: string
+          properties: Json | null
+          url: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event: string
+          id?: string
+          properties?: Json | null
+          url?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event?: string
+          id?: string
+          properties?: Json | null
+          url?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      app_logs: {
+        Row: {
+          context: string | null
+          created_at: string
+          id: string
+          level: string
+          message: string
+          metadata: Json | null
+          stack: string | null
+          url: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          context?: string | null
+          created_at?: string
+          id?: string
+          level: string
+          message: string
+          metadata?: Json | null
+          stack?: string | null
+          url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          context?: string | null
+          created_at?: string
+          id?: string
+          level?: string
+          message?: string
+          metadata?: Json | null
+          stack?: string | null
+          url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       colheitas: {
         Row: {
           created_at: string

@@ -1,5 +1,6 @@
 import { toast } from "@/hooks/use-toast";
 import { ZodError } from "zod";
+import { logger } from "@/lib/logger";
 
 /**
  * Maps any thrown value to a user-friendly Portuguese message.
@@ -37,8 +38,7 @@ export function getErrorMessage(error: unknown): string {
  * and surfaces a friendly toast to the user.
  */
 export function handleError(error: unknown, context?: string) {
-  if (context) console.error(`[${context}]`, error);
-  else console.error(error);
+  logger.error(error, context ?? "handleError");
 
   toast({
     variant: "destructive",
