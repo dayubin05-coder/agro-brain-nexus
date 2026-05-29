@@ -5,7 +5,9 @@ import {
   Bot, Camera, Send, Brain, Lightbulb,
   CloudSun, BarChart3, Scan, Loader2, ImagePlus, X,
 } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 import { agrobrainService, type AgrobrainMsg } from "@/services/agrobrain.service";
+
 
 
 const funcionalidades = [
