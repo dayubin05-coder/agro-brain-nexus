@@ -31,41 +31,24 @@ export default function Maquinas() {
   const [form, setForm] = useState(emptyForm);
 
   const { data: maquinas, isLoading } = useQuery({
-    queryKey: ["maquinas-real"], enabled: !!userData,
-    queryFn: async () => {
-      const { data, error } = await supabase.from("maquinas").select("*, fazendas!inner(user_id, nome)").eq("fazendas.user_id", userData!.id).order("nome");
-      if (error) throw error; return data;
-    },
+    queryKey: qk.maquinas(userData?.id), enabled: !!userData,
+    queryFn: () => maquinasService.listByUser(userData!.id),
   });
 
   const addMutation = useMutation({
-    mutationFn: async (f: typeof form) => {
-      const { error } = await supabase.from("maquinas").insert([{
-        fazenda_id: f.fazenda_id, nome: f.nome.trim(), tipo: f.tipo || null, modelo: f.modelo || null,
-        ano: f.ano ? Number(f.ano) : null, status: f.status, horas_uso: f.horas_uso ? Number(f.horas_uso) : 0,
-        combustivel_percentual: f.combustivel_percentual ? Number(f.combustivel_percentual) : null, proxima_manutencao: f.proxima_manutencao || null,
-      }]);
-      if (error) throw error;
-    },
+    mutationFn: (f: typeof form) => maquinasService.create(f),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["maquinas-real"] }); toast({ title: "Máquina cadastrada" }); setIsAddOpen(false); setForm(emptyForm); },
     onError: (e) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (item: any) => {
-      const { error } = await supabase.from("maquinas").update({
-        nome: item.nome.trim(), tipo: item.tipo || null, modelo: item.modelo || null,
-        ano: item.ano ? Number(item.ano) : null, status: item.status, horas_uso: item.horas_uso ? Number(item.horas_uso) : 0,
-        combustivel_percentual: item.combustivel_percentual ? Number(item.combustivel_percentual) : null, proxima_manutencao: item.proxima_manutencao || null,
-      }).eq("id", item.id);
-      if (error) throw error;
-    },
+    mutationFn: (item: any) => maquinasService.update(item.id, item),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["maquinas-real"] }); toast({ title: "Máquina atualizada" }); setEditingItem(null); },
     onError: (e) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: string) => { const { error } = await supabase.from("maquinas").delete().eq("id", id); if (error) throw error; },
+    mutationFn: (id: string) => maquinasService.remove(id),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["maquinas-real"] }); toast({ title: "Máquina removida" }); },
   });
 
