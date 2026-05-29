@@ -6,8 +6,6 @@ import { FileText, Download, Loader2, BarChart3, DollarSign, Package, Users, Bug
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { formatDateBR } from "@/lib/formatters";
 
 type ReportType = "financeiro" | "estoque" | "funcionarios" | "pragas" | "plantio";
@@ -50,6 +48,11 @@ export default function Relatorios() {
   const generatePDF = async () => {
     setGenerating(true);
     try {
+      // Lazy-load das libs pesadas (jsPDF + autotable só baixam quando o usuário exporta)
+      const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+        import("jspdf"),
+        import("jspdf-autotable"),
+      ]);
       const doc = new jsPDF();
       const typeLabel = reportTypes.find((r) => r.value === selectedType)?.label || "";
 

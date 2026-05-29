@@ -4,6 +4,7 @@ import AppSidebar from "./AppSidebar";
 import ThemeToggle from "./ThemeToggle";
 import NotificationsPanel from "./NotificationsPanel";
 import { Bell, Search, User, LogOut, Settings, Menu } from "lucide-react";
+import { t } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { profileService } from "@/services/profile.service";
 import { authService } from "@/services/auth.service";
@@ -55,6 +56,14 @@ export default function AppLayout() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Skip link (a11y) */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:bg-primary focus:text-primary-foreground focus:px-3 focus:py-2 focus:rounded-md"
+      >
+        Pular para o conteúdo
+      </a>
+
       {!isMobile && (
         <AppSidebar collapsed={collapsed} setCollapsed={setCollapsed} />
       )}
@@ -81,16 +90,19 @@ export default function AppLayout() {
           {isMobile && (
             <button
               onClick={() => setMobileOpen(true)}
+              aria-label="Abrir menu de navegação"
               className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground"
             >
-              <Menu className="w-5 h-5" />
+              <Menu className="w-5 h-5" aria-hidden="true" />
             </button>
           )}
 
           <div className="flex items-center gap-3 flex-1 max-w-xl">
             <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <label htmlFor="global-search" className="sr-only">{t("common.search")}</label>
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
               <input
+                id="global-search"
                 type="text"
                 placeholder={isMobile ? "Buscar..." : "Buscar fazendas, culturas, relatórios..."}
                 className="w-full bg-muted/50 border border-transparent rounded-full pl-10 pr-4 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:bg-background focus:border-primary/30 focus:ring-1 focus:ring-primary/30 transition-all"
@@ -104,9 +116,11 @@ export default function AppLayout() {
             <div className="relative">
               <button
                 onClick={() => setNotifOpen(!notifOpen)}
+                aria-label={`Notificações${notifCount > 0 ? ` (${notifCount} não lidas)` : ""}`}
+                aria-expanded={notifOpen}
                 className="relative p-2 rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
               >
-                <Bell className="w-5 h-5" />
+                <Bell className="w-5 h-5" aria-hidden="true" />
                 {notifCount > 0 && (
                   <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
                     {notifCount > 9 ? "9+" : notifCount}
@@ -120,12 +134,12 @@ export default function AppLayout() {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-3 hover:bg-muted p-1.5 md:pr-3 rounded-full transition-colors outline-none focus-visible:ring-1 focus-visible:ring-primary">
+                <button aria-label="Menu da conta" className="flex items-center gap-3 hover:bg-muted p-1.5 md:pr-3 rounded-full transition-colors outline-none focus-visible:ring-1 focus-visible:ring-primary">
                   <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 text-primary overflow-hidden">
                     {avatarUrl ? (
-                      <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                      <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
                     ) : (
-                      <User className="w-4 h-4" />
+                      <User className="w-4 h-4" aria-hidden="true" />
                     )}
                   </div>
                   <div className="hidden md:block text-left">
@@ -135,25 +149,26 @@ export default function AppLayout() {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+                <DropdownMenuLabel>{t("common.account")}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer" onClick={() => navigate("/perfil")}>
-                  <Settings className="w-4 h-4 mr-2" />
-                  Meu Perfil
+                  <Settings className="w-4 h-4 mr-2" aria-hidden="true" />
+                  {t("common.profile")}
                 </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={handleLogout}>
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Sair
+                  <LogOut className="w-4 h-4 mr-2" aria-hidden="true" />
+                  {t("common.logout")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </header>
 
-        <main className="flex-1 p-4 md:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+        <main id="main-content" tabIndex={-1} className="flex-1 p-4 md:p-6 lg:p-8 max-w-7xl mx-auto w-full focus:outline-none">
           <Outlet />
         </main>
       </div>
     </div>
   );
+}
 }
