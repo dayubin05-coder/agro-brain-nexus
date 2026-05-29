@@ -68,7 +68,7 @@ export default function Sustentabilidade() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const payload = { ...form, data: form.data || new Date().toISOString().slice(0, 10) };
+    const payload = { ...form, data: new Date().toISOString().slice(0, 10) };
     const parsed = validateOrToast(sustentabilidadeSchema, payload);
     if (!parsed) return;
     addMutation.mutate(form);
