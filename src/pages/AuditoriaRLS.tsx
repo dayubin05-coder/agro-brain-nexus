@@ -37,6 +37,10 @@ export default function AuditoriaRLS() {
     queryFn: auditoriaService.listReports,
   });
 
+  const filteredReports = reports?.filter(r =>
+    r.titulo.toLowerCase().includes(search.toLowerCase()) ||
+    r.resumo?.toLowerCase().includes(search.toLowerCase())
+  );
 
   const stats = {
     total: tableStatus?.length || 0,
