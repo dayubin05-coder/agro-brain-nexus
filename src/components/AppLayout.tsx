@@ -86,29 +86,30 @@ export default function AppLayout() {
           isMobile ? "ml-0" : collapsed ? "ml-[72px]" : "ml-[260px]"
         )}
       >
-        <header className="sticky top-0 z-40 h-14 md:h-16 bg-card/80 backdrop-blur-md border-b border-border flex items-center justify-between px-3 md:px-6 shadow-sm gap-2">
+        <header className="sticky top-0 z-40 h-14 md:h-16 bg-card/75 backdrop-blur-xl border-b border-border/60 flex items-center justify-between px-3 md:px-6 gap-2 supports-[backdrop-filter]:bg-card/60">
           {isMobile && (
             <button
               onClick={() => setMobileOpen(true)}
               aria-label="Abrir menu de navegação"
-              className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground"
+              className="p-2 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
             >
               <Menu className="w-5 h-5" aria-hidden="true" />
             </button>
           )}
 
           <div className="flex items-center gap-3 flex-1 max-w-xl">
-            <div className="relative w-full">
+            <div className="relative w-full group">
               <label htmlFor="global-search" className="sr-only">{t("common.search")}</label>
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" aria-hidden="true" />
               <input
                 id="global-search"
                 type="text"
                 placeholder={isMobile ? "Buscar..." : "Buscar fazendas, culturas, relatórios..."}
-                className="w-full bg-muted/50 border border-transparent rounded-full pl-10 pr-4 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:bg-background focus:border-primary/30 focus:ring-1 focus:ring-primary/30 transition-all"
+                className="w-full bg-muted/60 border border-transparent rounded-full pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:bg-background focus:border-primary/40 focus:shadow-ring transition-all"
               />
             </div>
           </div>
+
 
           <div className="flex items-center gap-1 md:gap-3">
             <ThemeToggle />
