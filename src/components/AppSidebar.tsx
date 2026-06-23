@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { memo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Layers,
@@ -46,12 +46,14 @@ const navItems = [
 interface AppSidebarProps {
   collapsed: boolean;
   setCollapsed: (collapsed: boolean) => void;
+  onNavigateTo: (path: string) => void;
   onNavigate?: () => void;
 }
 
-export default function AppSidebar({ collapsed, setCollapsed, onNavigate }: AppSidebarProps) {
-  const location = useLocation();
-  const navigate = useNavigate();
+function AppSidebar({ collapsed, setCollapsed, onNavigateTo, onNavigate }: AppSidebarProps) {
+  const initialPathRef = useRef(
+    typeof window !== "undefined" ? window.location.pathname : "/"
+  );
 
   return (
     <motion.aside
@@ -86,11 +88,11 @@ export default function AppSidebar({ collapsed, setCollapsed, onNavigate }: AppS
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
         {navItems.map((item) => {
-          const isActive = location.pathname === item.path;
+          const isActive = initialPathRef.current === item.path;
           return (
             <button
               key={item.path}
-              onClick={() => { navigate(item.path); onNavigate?.(); }}
+              onClick={() => { onNavigateTo(item.path); onNavigate?.(); }}
               title={collapsed ? item.label : undefined}
               className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group
                 ${isActive
@@ -139,3 +141,5 @@ export default function AppSidebar({ collapsed, setCollapsed, onNavigate }: AppS
     </motion.aside>
   );
 }
+
+export default memo(AppSidebar);
