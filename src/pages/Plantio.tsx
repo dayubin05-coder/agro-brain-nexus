@@ -97,16 +97,20 @@ export default function Plantio() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">Plantio & Colheita</h1>
-          <p className="text-muted-foreground text-sm mt-1">Gerencie o ciclo completo das suas culturas</p>
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div className="space-y-1">
+          <span className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.16em] font-semibold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
+            Produção
+          </span>
+          <h1 className="text-3xl sm:text-4xl font-display font-bold text-foreground tracking-tight">Plantio & Colheita</h1>
+          <p className="text-muted-foreground text-sm">Gerencie o ciclo completo das suas culturas.</p>
         </div>
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
           <DialogTrigger asChild>
-            <button className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg gradient-primary text-primary-foreground text-sm font-medium shadow-glow hover:opacity-90 transition-opacity">
+            <button className="self-start sm:self-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-full gradient-primary text-primary-foreground text-sm font-semibold shadow-glow hover:scale-[1.02] transition-all">
               <Plus className="w-4 h-4" /> Novo Plantio
             </button>
+
           </DialogTrigger>
           <DialogContent className="sm:max-w-[550px]">
             <DialogHeader><DialogTitle>Registrar Novo Plantio</DialogTitle><DialogDescription>Insira as informações do novo ciclo de cultivo.</DialogDescription></DialogHeader>
