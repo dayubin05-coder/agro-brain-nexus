@@ -1,4 +1,4 @@
-import { Suspense, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { RouteFallback } from "./PageSkeleton";
 import AppSidebar from "./AppSidebar";
@@ -31,7 +31,12 @@ export default function AppLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const navigate = useNavigate();
+  const navigateRef = useRef(navigate);
   const isMobile = useIsMobile();
+
+  useEffect(() => {
+    navigateRef.current = navigate;
+  }, [navigate]);
 
   const { data: notifCount = 0 } = useQuery({
     queryKey: qk.notifications(),
@@ -55,6 +60,14 @@ export default function AppLayout() {
     navigate("/login");
   };
 
+  const handleSidebarNavigate = useCallback((path: string) => {
+    navigateRef.current(path);
+  }, []);
+
+  const closeMobileSidebar = useCallback(() => {
+    setMobileOpen(false);
+  }, []);
+
   return (
     <div className="min-h-dvh bg-background gradient-subtle">
       {/* Skip link (a11y) */}
@@ -66,7 +79,7 @@ export default function AppLayout() {
       </a>
 
       {!isMobile && (
-        <AppSidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+        <AppSidebar collapsed={collapsed} setCollapsed={setCollapsed} onNavigateTo={handleSidebarNavigate} />
       )}
 
       {isMobile && (
@@ -75,7 +88,8 @@ export default function AppLayout() {
             <AppSidebar
               collapsed={false}
               setCollapsed={() => {}}
-              onNavigate={() => setMobileOpen(false)}
+              onNavigateTo={handleSidebarNavigate}
+              onNavigate={closeMobileSidebar}
             />
           </SheetContent>
         </Sheet>
