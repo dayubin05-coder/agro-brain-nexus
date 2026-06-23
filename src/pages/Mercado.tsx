@@ -48,13 +48,13 @@ export default function Mercado() {
   const activeHistorico = historico[activeChart] || [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-finance [font-feature-settings:'ss01','cv11','tnum']">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">Mercado de Commodities</h1>
-          <p className="text-muted-foreground text-sm mt-1">Preços, tendências e recomendações de venda</p>
+          <h1 className="text-2xl md:text-3xl font-finance font-semibold tracking-tight text-foreground">Mercado de Commodities</h1>
+          <p className="text-muted-foreground text-sm mt-1 font-finance">Preços, tendências e recomendações de venda</p>
         </div>
-        <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
+        <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching} className="font-finance">
           <RefreshCw className={`w-4 h-4 mr-2 ${isFetching ? "animate-spin" : ""}`} />
           Atualizar
         </Button>
@@ -94,18 +94,18 @@ export default function Mercado() {
                 onClick={() => setSelectedChart(c.nome)}
               >
                 <div className="flex items-start justify-between mb-2">
-                  <h4 className="font-display font-semibold text-foreground">{c.nome}</h4>
-                  <span className={`flex items-center gap-1 text-xs font-medium ${c.tipo === "positiva" ? "text-success" : "text-destructive"}`}>
+                  <h4 className="font-finance font-semibold tracking-tight text-foreground">{c.nome}</h4>
+                  <span className={`flex items-center gap-1 text-xs font-medium font-numeric tabular-nums ${c.tipo === "positiva" ? "text-success" : "text-destructive"}`}>
                     {c.tipo === "positiva" ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
                     {c.variacao}
                   </span>
                 </div>
-                <p className="text-2xl font-display font-bold text-foreground">
+                <p className="text-2xl font-numeric font-semibold tabular-nums tracking-tight text-foreground">
                   {formatBRL(parseFloat(c.preco))}
                 </p>
                 <div className="mt-3 pt-3 border-t border-border space-y-1">
-                  <p className="text-xs text-muted-foreground">Tendência: <span className="text-foreground font-medium">{c.tendencia}</span></p>
-                  <p className="text-xs text-muted-foreground">Previsão: <span className="text-foreground font-medium">{c.previsao}</span></p>
+                  <p className="text-xs text-muted-foreground font-finance">Tendência: <span className="text-foreground font-medium">{c.tendencia}</span></p>
+                  <p className="text-xs text-muted-foreground font-finance">Previsão: <span className="text-foreground font-medium">{c.previsao}</span></p>
                 </div>
               </motion.div>
             ))}
@@ -115,13 +115,13 @@ export default function Mercado() {
           {activeHistorico.length > 0 && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
               className="bg-card rounded-xl p-5 shadow-card border border-border">
-              <h3 className="font-display font-semibold text-foreground mb-4">Histórico — {activeChart} (R$)</h3>
+              <h3 className="font-finance font-semibold tracking-tight text-foreground mb-4">Histórico — {activeChart} (R$)</h3>
               <ResponsiveContainer width="100%" height={280}>
                 <LineChart data={activeHistorico}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="data" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
-                  <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} domain={["dataMin - 5", "dataMax + 5"]} />
-                  <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px", fontSize: "12px" }} />
+                  <XAxis dataKey="data" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))", fontFamily: "IBM Plex Mono" }} />
+                  <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))", fontFamily: "IBM Plex Mono" }} domain={["dataMin - 5", "dataMax + 5"]} />
+                  <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px", fontSize: "12px", fontFamily: "IBM Plex Sans" }} />
                   <Line type="monotone" dataKey="preco" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 4, fill: "hsl(var(--primary))" }} name="Preço" />
                 </LineChart>
               </ResponsiveContainer>
@@ -131,16 +131,16 @@ export default function Mercado() {
           {/* AI Recommendations */}
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
             className="bg-card rounded-xl p-5 shadow-card border border-border">
-            <h3 className="font-display font-semibold text-foreground mb-4">🤖 Recomendações de Venda (IA)</h3>
+            <h3 className="font-finance font-semibold tracking-tight text-foreground mb-4">Recomendações de Venda (IA)</h3>
             <div className="space-y-3">
               {recomendacoes.map((r, i) => (
                 <div key={i} className="flex items-start gap-4 p-4 rounded-lg border border-border hover:bg-muted/20 transition-colors">
-                  <div className={`shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg ${urgColor[r.urgencia]}`}>
+                  <div className={`shrink-0 text-xs font-semibold font-finance px-3 py-1.5 rounded-lg ${urgColor[r.urgencia]}`}>
                     {r.acao}
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-semibold text-foreground">{r.cultura}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{r.desc}</p>
+                    <p className="text-sm font-semibold font-finance text-foreground">{r.cultura}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5 font-finance leading-relaxed">{r.desc}</p>
                   </div>
                 </div>
               ))}
