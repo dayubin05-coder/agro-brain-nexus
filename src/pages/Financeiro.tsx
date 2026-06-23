@@ -124,16 +124,20 @@ export default function Financeiro() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">Gestão Financeira</h1>
-          <p className="text-muted-foreground text-sm mt-1">Controle financeiro da sua operação agrícola</p>
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div className="space-y-1">
+          <span className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.16em] font-semibold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
+            Financeiro
+          </span>
+          <h1 className="text-3xl sm:text-4xl font-display font-bold text-foreground tracking-tight">Gestão Financeira</h1>
+          <p className="text-muted-foreground text-sm">Controle financeiro completo da sua operação.</p>
         </div>
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
           <DialogTrigger asChild>
-            <button className="flex items-center gap-2 px-4 py-2.5 rounded-lg gradient-primary text-primary-foreground text-sm font-medium shadow-glow hover:opacity-90 transition-opacity">
+            <button className="self-start sm:self-auto flex items-center gap-2 px-5 py-2.5 rounded-full gradient-primary text-primary-foreground text-sm font-semibold shadow-glow hover:scale-[1.02] transition-all">
               <Plus className="w-4 h-4" /> Nova Transação
             </button>
+
           </DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle>Registrar Transação</DialogTitle></DialogHeader>

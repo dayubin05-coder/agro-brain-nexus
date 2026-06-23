@@ -289,18 +289,21 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground text-sm mt-1">Visão geral da sua operação agrícola</p>
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div className="space-y-1">
+          <span className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.16em] font-semibold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
+            Visão geral
+          </span>
+          <h1 className="text-3xl sm:text-4xl font-display font-bold text-foreground tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground text-sm">Acompanhe a operação agrícola em tempo real.</p>
         </div>
-        
+
         <div className="flex items-center gap-2">
-          <a 
-            href="https://rpowegchummgmdckzcik.supabase.co/storage/v1/object/public/documents/security-audits%2FRelatorio_Auditoria_RLS.pdf" 
-            target="_blank" 
+          <a
+            href="https://rpowegchummgmdckzcik.supabase.co/storage/v1/object/public/documents/security-audits%2FRelatorio_Auditoria_RLS.pdf"
+            target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-success/10 text-success text-xs font-semibold hover:bg-success/20 transition-colors border border-success/20"
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-success/10 text-success text-xs font-semibold hover:bg-success/20 transition-colors border border-success/20"
           >
             <ShieldCheck className="w-3.5 h-3.5" />
             Auditoria RLS (PDF)
@@ -308,6 +311,7 @@ export default function Dashboard() {
           </a>
         </div>
       </div>
+
 
       {isLoading ? (
         <div className="flex items-center justify-center py-20">
