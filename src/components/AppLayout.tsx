@@ -55,7 +55,7 @@ export default function AppLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background gradient-subtle">
       {/* Skip link (a11y) */}
       <a
         href="#main-content"
