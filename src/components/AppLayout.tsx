@@ -1,4 +1,4 @@
-import { Suspense, useCallback, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { RouteFallback } from "./PageSkeleton";
 import AppSidebar from "./AppSidebar";
@@ -31,7 +31,12 @@ export default function AppLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const navigate = useNavigate();
+  const navigateRef = useRef(navigate);
   const isMobile = useIsMobile();
+
+  useEffect(() => {
+    navigateRef.current = navigate;
+  }, [navigate]);
 
   const { data: notifCount = 0 } = useQuery({
     queryKey: qk.notifications(),
@@ -56,8 +61,8 @@ export default function AppLayout() {
   };
 
   const handleSidebarNavigate = useCallback((path: string) => {
-    navigate(path);
-  }, [navigate]);
+    navigateRef.current(path);
+  }, []);
 
   const closeMobileSidebar = useCallback(() => {
     setMobileOpen(false);
