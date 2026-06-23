@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
+import { RouteFallback } from "./PageSkeleton";
 import AppSidebar from "./AppSidebar";
 import ThemeToggle from "./ThemeToggle";
 import NotificationsPanel from "./NotificationsPanel";
@@ -166,7 +167,9 @@ export default function AppLayout() {
         </header>
 
         <main id="main-content" tabIndex={-1} className="flex-1 p-4 md:p-6 lg:p-8 max-w-7xl mx-auto w-full focus:outline-none">
-          <Outlet />
+          <Suspense fallback={<RouteFallback />}>
+            <Outlet />
+          </Suspense>
         </main>
       </div>
     </div>
