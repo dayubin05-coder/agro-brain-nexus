@@ -16,6 +16,8 @@ export default {
       fontFamily: {
         display: ['Space Grotesk', 'system-ui', 'sans-serif'],
         body: ['DM Sans', 'system-ui', 'sans-serif'],
+        finance: ['"IBM Plex Sans"', 'system-ui', 'sans-serif'],
+        numeric: ['"IBM Plex Mono"', 'ui-monospace', 'monospace'],
       },
       colors: {
         border: "hsl(var(--border))",
