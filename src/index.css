@@ -185,6 +185,29 @@
   ::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground) / 0.4); background-clip: padding-box; border: 2px solid transparent; }
 }
 
+/* Mercado page: force IBM Plex typography across all descendants */
+.mercado-scope,
+.mercado-scope * {
+  font-family: 'IBM Plex Sans', system-ui, sans-serif !important;
+}
+.mercado-scope h1,
+.mercado-scope h2,
+.mercado-scope h3,
+.mercado-scope h4,
+.mercado-scope h5,
+.mercado-scope h6 {
+  font-family: 'IBM Plex Sans', system-ui, sans-serif !important;
+  letter-spacing: -0.02em;
+  font-feature-settings: "ss01", "cv11";
+}
+.mercado-scope .font-numeric,
+.mercado-scope [data-numeric],
+.mercado-scope table tbody td,
+.mercado-scope input[type="number"] {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace !important;
+  font-variant-numeric: tabular-nums;
+}
+
 @layer utilities {
   .gradient-primary { background: var(--gradient-primary); }
   .gradient-hero { background: var(--gradient-hero); }

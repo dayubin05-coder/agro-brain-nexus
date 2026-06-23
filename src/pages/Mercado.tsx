@@ -48,7 +48,7 @@ export default function Mercado() {
   const activeHistorico = historico[activeChart] || [];
 
   return (
-    <div className="space-y-6 font-finance [font-feature-settings:'ss01','cv11','tnum']">
+    <div className="mercado-scope space-y-6 font-finance [font-feature-settings:'ss01','cv11','tnum']">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl md:text-3xl font-finance font-semibold tracking-tight text-foreground">Mercado de Commodities</h1>
