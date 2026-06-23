@@ -48,17 +48,28 @@ export default function Mercado() {
   const activeHistorico = historico[activeChart] || [];
 
   return (
-    <div className="mercado-scope space-y-6 font-finance [font-feature-settings:'ss01','cv11','tnum']">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-finance font-semibold tracking-tight text-foreground">Mercado de Commodities</h1>
-          <p className="text-muted-foreground text-sm mt-1 font-finance">Preços, tendências e recomendações de venda</p>
+    <div className="mercado-scope space-y-8 font-finance [font-feature-settings:'ss01','cv11','tnum']">
+      {/* Page header — consistent baseline alignment */}
+      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 pb-5 border-b border-border">
+        <div className="space-y-1.5">
+          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-foreground leading-tight">
+            Mercado de Commodities
+          </h1>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Preços, tendências e recomendações de venda
+          </p>
         </div>
-        <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching} className="font-finance">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => refetch()}
+          disabled={isFetching}
+          className="self-start sm:self-end h-9"
+        >
           <RefreshCw className={`w-4 h-4 mr-2 ${isFetching ? "animate-spin" : ""}`} />
           Atualizar
         </Button>
-      </div>
+      </header>
 
       {isLoading ? (
         <div className="flex justify-center py-20">
@@ -66,7 +77,8 @@ export default function Mercado() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Top metrics */}
+          <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {topCommodities.map((c, i) => (
               <MetricCard
                 key={c.nome}
@@ -78,46 +90,71 @@ export default function Mercado() {
                 delay={i * 0.1}
               />
             ))}
-          </div>
+          </section>
 
           {/* Commodity cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {commodities.map((c, i) => (
-              <motion.div
+              <motion.article
                 key={c.nome}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.08 }}
-                className={`bg-card rounded-xl p-5 shadow-card border cursor-pointer transition-colors ${
+                className={`bg-card rounded-2xl p-6 shadow-card border cursor-pointer transition-colors flex flex-col ${
                   activeChart === c.nome ? "border-primary" : "border-border hover:border-primary/50"
                 }`}
                 onClick={() => setSelectedChart(c.nome)}
               >
-                <div className="flex items-start justify-between mb-2">
-                  <h4 className="font-finance font-semibold tracking-tight text-foreground">{c.nome}</h4>
-                  <span className={`flex items-center gap-1 text-xs font-medium font-numeric tabular-nums ${c.tipo === "positiva" ? "text-success" : "text-destructive"}`}>
-                    {c.tipo === "positiva" ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+                <header className="flex items-start justify-between gap-3 mb-3">
+                  <h4 className="text-sm font-semibold tracking-tight text-foreground leading-snug">
+                    {c.nome}
+                  </h4>
+                  <span
+                    className={`shrink-0 inline-flex items-center gap-1 text-xs font-medium font-numeric tabular-nums ${
+                      c.tipo === "positiva" ? "text-success" : "text-destructive"
+                    }`}
+                  >
+                    {c.tipo === "positiva" ? (
+                      <ArrowUpRight className="w-3.5 h-3.5" />
+                    ) : (
+                      <ArrowDownRight className="w-3.5 h-3.5" />
+                    )}
                     {c.variacao}
                   </span>
-                </div>
+                </header>
                 <p className="text-2xl font-numeric font-semibold tabular-nums tracking-tight text-foreground">
                   {formatBRL(parseFloat(c.preco))}
                 </p>
-                <div className="mt-3 pt-3 border-t border-border space-y-1">
-                  <p className="text-xs text-muted-foreground font-finance">Tendência: <span className="text-foreground font-medium">{c.tendencia}</span></p>
-                  <p className="text-xs text-muted-foreground font-finance">Previsão: <span className="text-foreground font-medium">{c.previsao}</span></p>
-                </div>
-              </motion.div>
+                <dl className="mt-5 pt-4 border-t border-border grid grid-cols-1 gap-1.5">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <dt className="text-xs text-muted-foreground">Tendência</dt>
+                    <dd className="text-xs text-foreground font-medium text-right">{c.tendencia}</dd>
+                  </div>
+                  <div className="flex items-baseline justify-between gap-3">
+                    <dt className="text-xs text-muted-foreground">Previsão</dt>
+                    <dd className="text-xs text-foreground font-medium text-right">{c.previsao}</dd>
+                  </div>
+                </dl>
+              </motion.article>
             ))}
-          </div>
+          </section>
 
           {/* Chart */}
           {activeHistorico.length > 0 && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
-              className="bg-card rounded-xl p-5 shadow-card border border-border">
-              <h3 className="font-finance font-semibold tracking-tight text-foreground mb-4">Histórico — {activeChart} (R$)</h3>
+            <motion.section
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
+              className="bg-card rounded-2xl p-6 shadow-card border border-border"
+            >
+              <header className="flex items-center justify-between mb-5">
+                <h3 className="text-base font-semibold tracking-tight text-foreground">
+                  Histórico — {activeChart}
+                </h3>
+                <span className="text-xs text-muted-foreground font-numeric tabular-nums">R$</span>
+              </header>
               <ResponsiveContainer width="100%" height={280}>
-                <LineChart data={activeHistorico}>
+                <LineChart data={activeHistorico} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis dataKey="data" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))", fontFamily: "IBM Plex Mono" }} />
                   <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))", fontFamily: "IBM Plex Mono" }} domain={["dataMin - 5", "dataMax + 5"]} />
@@ -125,27 +162,40 @@ export default function Mercado() {
                   <Line type="monotone" dataKey="preco" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 4, fill: "hsl(var(--primary))" }} name="Preço" />
                 </LineChart>
               </ResponsiveContainer>
-            </motion.div>
+            </motion.section>
           )}
 
           {/* AI Recommendations */}
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
-            className="bg-card rounded-xl p-5 shadow-card border border-border">
-            <h3 className="font-finance font-semibold tracking-tight text-foreground mb-4">Recomendações de Venda (IA)</h3>
-            <div className="space-y-3">
+          <motion.section
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+            className="bg-card rounded-2xl p-6 shadow-card border border-border"
+          >
+            <header className="mb-5">
+              <h3 className="text-base font-semibold tracking-tight text-foreground">
+                Recomendações de Venda (IA)
+              </h3>
+            </header>
+            <ul className="space-y-3">
               {recomendacoes.map((r, i) => (
-                <div key={i} className="flex items-start gap-4 p-4 rounded-lg border border-border hover:bg-muted/20 transition-colors">
-                  <div className={`shrink-0 text-xs font-semibold font-finance px-3 py-1.5 rounded-lg ${urgColor[r.urgencia]}`}>
+                <li
+                  key={i}
+                  className="flex items-start gap-4 p-4 rounded-xl border border-border hover:bg-muted/20 transition-colors"
+                >
+                  <span
+                    className={`shrink-0 inline-flex items-center text-xs font-semibold px-3 py-1.5 rounded-lg ${urgColor[r.urgencia]}`}
+                  >
                     {r.acao}
+                  </span>
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <p className="text-sm font-semibold text-foreground leading-snug">{r.cultura}</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{r.desc}</p>
                   </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold font-finance text-foreground">{r.cultura}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5 font-finance leading-relaxed">{r.desc}</p>
-                  </div>
-                </div>
+                </li>
               ))}
-            </div>
-          </motion.div>
+            </ul>
+          </motion.section>
         </>
       )}
     </div>
