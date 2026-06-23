@@ -59,6 +59,10 @@ export default function AppLayout() {
     navigate(path);
   }, [navigate]);
 
+  const closeMobileSidebar = useCallback(() => {
+    setMobileOpen(false);
+  }, []);
+
   return (
     <div className="min-h-dvh bg-background gradient-subtle">
       {/* Skip link (a11y) */}
@@ -80,7 +84,7 @@ export default function AppLayout() {
               collapsed={false}
               setCollapsed={() => {}}
               onNavigateTo={handleSidebarNavigate}
-              onNavigate={() => setMobileOpen(false)}
+              onNavigate={closeMobileSidebar}
             />
           </SheetContent>
         </Sheet>
