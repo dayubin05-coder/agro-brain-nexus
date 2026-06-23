@@ -1,4 +1,4 @@
-import { Suspense, useState } from "react";
+import { Suspense, useCallback, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { RouteFallback } from "./PageSkeleton";
 import AppSidebar from "./AppSidebar";
@@ -55,6 +55,10 @@ export default function AppLayout() {
     navigate("/login");
   };
 
+  const handleSidebarNavigate = useCallback((path: string) => {
+    navigate(path);
+  }, [navigate]);
+
   return (
     <div className="min-h-dvh bg-background gradient-subtle">
       {/* Skip link (a11y) */}
@@ -66,7 +70,7 @@ export default function AppLayout() {
       </a>
 
       {!isMobile && (
-        <AppSidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+        <AppSidebar collapsed={collapsed} setCollapsed={setCollapsed} onNavigateTo={handleSidebarNavigate} />
       )}
 
       {isMobile && (
@@ -75,6 +79,7 @@ export default function AppLayout() {
             <AppSidebar
               collapsed={false}
               setCollapsed={() => {}}
+              onNavigateTo={handleSidebarNavigate}
               onNavigate={() => setMobileOpen(false)}
             />
           </SheetContent>
