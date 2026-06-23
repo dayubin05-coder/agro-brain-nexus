@@ -6,12 +6,11 @@ import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client
 import { ThemeProvider } from "./components/ThemeProvider";
 import { AuthProvider } from "./contexts/AuthContext";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, useEffect } from "react";
 import AppLayout from "./components/AppLayout";
 import AuthGuard from "./components/AuthGuard";
 import ErrorBoundary from "./components/ErrorBoundary";
 import OfflineIndicator from "./components/OfflineIndicator";
-import { RouteFallback } from "./components/PageSkeleton";
 import { usePageTracking } from "./hooks/use-page-tracking";
 import { idbPersister } from "./lib/offline-persister";
 import { replayQueue } from "./lib/offline-queue";
@@ -87,34 +86,32 @@ const App = () => (
           <AuthProvider>
             <AuthGuard>
               <ErrorBoundary>
-                <Suspense fallback={<RouteFallback />}>
-                  <RouteTracker />
-                  <Routes>
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
-                    <Route path="/reset-password" element={<ResetPassword />} />
-                    <Route element={<AppLayout />}>
-                      <Route path="/" element={<Dashboard />} />
-                      <Route path="/fazendas" element={<Fazendas />} />
-                      <Route path="/talhoes" element={<Talhoes />} />
-                      <Route path="/plantio" element={<Plantio />} />
-                      <Route path="/financeiro" element={<Financeiro />} />
-                      <Route path="/estoque" element={<Estoque />} />
-                      <Route path="/maquinas" element={<Maquinas />} />
-                      <Route path="/funcionarios" element={<Funcionarios />} />
-                      <Route path="/clima" element={<Clima />} />
-                      <Route path="/pragas" element={<Pragas />} />
-                      <Route path="/mercado" element={<Mercado />} />
-                      <Route path="/marketplace" element={<Marketplace />} />
-                      <Route path="/ia" element={<IAAgricola />} />
-                      <Route path="/sustentabilidade" element={<Sustentabilidade />} />
-                      <Route path="/perfil" element={<Perfil />} />
-                      <Route path="/relatorios" element={<Relatorios />} />
-                      <Route path="/auditoria-rls" element={<AuditoriaRLS />} />
-                    </Route>
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </Suspense>
+                <RouteTracker />
+                <Routes>
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route element={<AppLayout />}>
+                    <Route path="/" element={<Dashboard />} />
+                    <Route path="/fazendas" element={<Fazendas />} />
+                    <Route path="/talhoes" element={<Talhoes />} />
+                    <Route path="/plantio" element={<Plantio />} />
+                    <Route path="/financeiro" element={<Financeiro />} />
+                    <Route path="/estoque" element={<Estoque />} />
+                    <Route path="/maquinas" element={<Maquinas />} />
+                    <Route path="/funcionarios" element={<Funcionarios />} />
+                    <Route path="/clima" element={<Clima />} />
+                    <Route path="/pragas" element={<Pragas />} />
+                    <Route path="/mercado" element={<Mercado />} />
+                    <Route path="/marketplace" element={<Marketplace />} />
+                    <Route path="/ia" element={<IAAgricola />} />
+                    <Route path="/sustentabilidade" element={<Sustentabilidade />} />
+                    <Route path="/perfil" element={<Perfil />} />
+                    <Route path="/relatorios" element={<Relatorios />} />
+                    <Route path="/auditoria-rls" element={<AuditoriaRLS />} />
+                  </Route>
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
               </ErrorBoundary>
             </AuthGuard>
           </AuthProvider>
